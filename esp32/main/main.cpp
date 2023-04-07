@@ -5,23 +5,36 @@
 #include "freertos/task.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+#include "esp_log.h"
 #include "nvs_flash.h"
-#include "esp_spiffs.h"
 #include "console.h"
 #include "neopixel.h"
+#include "buzzer.h"
+#include "display.h"
+#include "disk.h"
+#include "save.h"
+#include "wifi.h"
+#include "badge/mesh/main.h"
 
-#define MOUNT_PATH "/spiffs"
+#define TAG "main"
 
-static bool mount_spiffs() {
-    esp_vfs_spiffs_conf_t conf = {
-        .base_path = MOUNT_PATH,
-        .partition_label = NULL,
-        .max_files = 8,
-        .format_if_mount_failed = false
+static wl_handle_t s_wl_handle = WL_INVALID_HANDLE;
+
+esp_err_t initialize_storage()
+{
+    ESP_LOGI(TAG, "Mounting /flags filesystem");
+    const esp_vfs_fat_mount_config_t mount_config = {
+            .format_if_mount_failed = true,
+            .max_files = 1,
+            .allocation_unit_size = CONFIG_WL_SECTOR_SIZE,
     };
+    esp_err_t err = esp_vfs_fat_spiflash_mount_rw_wl("/flags", "storage", &mount_config, &s_wl_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to mount FATFS (%s)", esp_err_to_name(err));
+        return err;
+    }
 
-    esp_err_t ret = esp_vfs_spiffs_register(&conf);
-    return ret == ESP_OK;
+    return ESP_OK;
 }
 
 static void initialize_nvs(void) {
@@ -36,20 +49,28 @@ static void initialize_nvs(void) {
 extern "C" void app_main(void) {
 
     initialize_nvs();
-    mount_spiffs();
-
-    /* Print chip information */
-    uint32_t flash_size;
-    if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-        printf("Get flash size failed");
-        return;
-    }
     fflush(stdout);
+
+    Save::load_save();
+    Save::load_and_set_log_levels();
+
+    initialize_storage();
+
+    /* will only show once log_level is saved and board is restarted */
+    ESP_LOGI("flag", "🤔 " LOG_COLOR("38;5;232;48;5;232") "FLAG-{378792f89d19dfe064b5fa36b5c54971}" LOG_RESET_COLOR);
+
 	NeoPixel::getInstance().init();
-    NeoPixel::getInstance().stop();
-	NeoPixel::getInstance().setColor(CRGB::Red);
-    NeoPixel::getInstance().setBrightness(255);
-    NeoPixel::getInstance().setMode(FX_MODE_RANDOM_COLOR);
-    NeoPixel::getInstance().start();
-	xTaskCreate(console_task, "console task", 4096, NULL, 3, NULL);
+
+    Buzzer::getInstance().init();
+    Buzzer::getInstance().play(Buzzer::Sounds::Mode1);
+
+    Disk::getInstance().init();
+
+    BadgeMesh::getInstance().init();
+
+    Wifi::getInstance().init();
+
+    Display::getInstance().init();
+
+    console_create_task();
 }
