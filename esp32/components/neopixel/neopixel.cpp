@@ -58,12 +58,11 @@ void NeoPixel::setColor(CRGB color)
 
 void NeoPixel::setBrightness(uint8_t brightness)
 {
-    if (brightness <= 0xff && brightness >= 0) {
-        FastLED.setBrightness(brightness);
-        NeoPixel::_ws2812fx.setBrightness(brightness);
-        _brightness = brightness;
-        Save::save_data.neopixel_brightness = brightness;
-    }
+    printf("Neopixel brightness %d\n",brightness);
+    FastLED.setBrightness(brightness);
+    NeoPixel::_ws2812fx.setBrightness(brightness);
+    _brightness = brightness;
+    Save::save_data.neopixel_brightness = brightness;
 }
 
 void NeoPixel::setMode(uint8_t mode)
@@ -94,6 +93,12 @@ int NeoPixel::getColor()
 {
     return _led;
 }
+bool NeoPixel::getIsOn()
+{
+    return NeoPixel::is_on;
+}
+
+
 
 void neopixel_set_brightness(uint8_t brightness)
 {

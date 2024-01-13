@@ -24,16 +24,14 @@
 #include "buzzer.h"
 #include "save.h"
 #include "disk.h"
-#include "badge/mesh/main.h"
 #include "screens/splash.h"
 #include "screens/debug.h"
-#include "screens/assistant.h"
 #include "lv_utils.h"
 
 static const char *TAG = "display";
 #define LV_TICK_PERIOD_MS 10
 
-#define SPLASH_WAIT_SECONDS 3
+#define SPLASH_WAIT_SECONDS 1
 
 TaskHandle_t Display::_taskHandle = NULL;
 
@@ -59,13 +57,6 @@ static void _initialize_lv_buffers()
         return;
     }
     memset(buf1, 0, size_in_px);
-
-    /*buf2 = heap_caps_malloc(size_in_px * sizeof(lv_color_t), MALLOC_CAP_8BIT);
-    if (buf2 == NULL) {
-        ESP_LOGE(TAG, "Failed to allocate buf2 %lu", size_in_px);
-        return;
-    }
-    memset(buf2, 0, size_in_px);*/
 
     lv_disp_buf_init(&_lv_display_buffer, buf1, buf2, size_in_px);
 
@@ -120,7 +111,6 @@ void Display::taskHandler()
     TickType_t splash_displayed_at = xTaskGetTickCount();
     bool splash_visible = true;
     int splash_cur = 0;
-    int debug = Save::save_data.debug_enabled;
 
 	if (xSemaphoreTake(xGuiSemaphore, (TickType_t)10) == pdTRUE) {
         lv_disp_drv_t disp_drv;
@@ -142,6 +132,7 @@ void Display::taskHandler()
             .name = "periodic_gui",
         };
         esp_timer_handle_t periodic_timer;
+        #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
         ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
         ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, LV_TICK_PERIOD_MS * 1000));
 
@@ -162,11 +153,7 @@ void Display::taskHandler()
 
                 if(elapsed_time_ms > (SPLASH_WAIT_SECONDS * 1000)) {
                     if(splash_cur > screen_splash_string_count()) {
-                        if(debug) {
-                            screen_debug_init();
-                        } else {
-                            screen_assistant_init();
-                        }
+                        screen_debug_init();
                         splash_visible = false;
                     } else {
                         screen_splash_set_string(splash_cur++);
@@ -174,15 +161,10 @@ void Display::taskHandler()
                 }
             } else {
                 // call update every loop for the screen code to do some work
-                if(debug) {
-                    screen_debug_loop();
-                } else {
-                    screen_assistant_loop();
-                }
+                screen_debug_loop();
             }
 
             Disk::getInstance().taskHandler();
-            BadgeMesh::getInstance().taskHandler();
 
             lv_task_handler();
             xSemaphoreGive(xGuiSemaphore);
