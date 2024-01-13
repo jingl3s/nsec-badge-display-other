@@ -62,23 +62,38 @@ private:
         .channel = LEDC_CHANNEL_0,
         .timer_sel = LEDC_TIMER_0,
         .duty = 0,
+        .hpoint = 0,
+        .flags =
+            {
+                .output_invert = 0,
+            },
     };
 
     // Configure the LEDC channel for output on a specific GPIO pin
    ledc_channel_config_t ledc_channel_g = {
-        .gpio_num = (int)PIN_G,               // Use GPIO 12
+        .gpio_num = (int)PIN_G, // Use GPIO 12
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .channel = LEDC_CHANNEL_1,
         .timer_sel = LEDC_TIMER_0,
         .duty = 0,
+        .hpoint = 0,
+        .flags =
+            {
+                .output_invert = 0,
+            },
     };
 
     // Configure the LEDC channel for output on a specific GPIO pin
    ledc_channel_config_t ledc_channel_b = {
-        .gpio_num = (int)PIN_B,               // Use GPIO 12
+        .gpio_num = (int)PIN_B, // Use GPIO 12
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .channel = LEDC_CHANNEL_2,
         .timer_sel = LEDC_TIMER_0,
         .duty = 0,
+        .hpoint = 0,
+        .flags =
+            {
+                .output_invert = 0,
+            },
     };
 };
