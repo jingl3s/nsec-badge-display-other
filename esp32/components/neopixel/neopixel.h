@@ -24,7 +24,9 @@ class NeoPixel
         return instance;
     }
 
-    constexpr static const uint8_t unlocked_mode[45] = {
+    constexpr static const uint8_t unlocked_mode[47] = {
+        FX_MODE_STATIC,             // 0
+        FX_MODE_BLINK,              // 1
         FX_MODE_BREATH,              // 2
         FX_MODE_COLOR_WIPE,          // 3
         FX_MODE_RANDOM_COLOR,        // 5
@@ -107,4 +109,5 @@ class NeoPixel
     uint8_t getBrightness();
     uint16_t getMode();
     int getColor();
+    bool getIsOn();
 };

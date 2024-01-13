@@ -20,9 +20,8 @@
 #include "lvgl/lvgl.h"
 #include "lvgl_helpers.h"
 
+#include "display_ledc_backlight.h"
 #include "screens/splash.h"
-
-static const char *TAG = "display";
 
 static lv_style_t style_box;
 static lv_obj_t *label;
@@ -32,39 +31,9 @@ static lv_obj_t *progress;
 #define SPLASH_STRINGS_SHORT(str) str, str, str
 
 static const char *splash_strings[] = {
-    "NorthSec 2023\nPersonal Assistant Device",
+    "NorthSec 2023\nModified by Jingl3s",
     SPLASH_STRINGS_LONG("Initializing"),
-    SPLASH_STRINGS_LONG("Initializing."),
-    SPLASH_STRINGS_LONG("Initializing.."),
-    SPLASH_STRINGS_LONG("Initializing..."),
-    SPLASH_STRINGS_LONG("Initializing...."),
-    SPLASH_STRINGS_LONG(""),
-    SPLASH_STRINGS_LONG("."),
-    SPLASH_STRINGS_LONG(".."),
-    SPLASH_STRINGS_LONG("..."),
-    SPLASH_STRINGS_LONG(""),
-    SPLASH_STRINGS_LONG("."),
-    SPLASH_STRINGS_LONG(".."),
-    SPLASH_STRINGS_LONG("..."),
-    SPLASH_STRINGS_LONG(""),
-    SPLASH_STRINGS_LONG("."),
-    SPLASH_STRINGS_LONG(".."),
-    SPLASH_STRINGS_LONG("..."),
-    SPLASH_STRINGS_LONG(""),
-    SPLASH_STRINGS_LONG("."),
-    SPLASH_STRINGS_LONG(".."),
-    SPLASH_STRINGS_LONG("..."),
-    SPLASH_STRINGS_LONG(""),
-    SPLASH_STRINGS_LONG("."),
-    SPLASH_STRINGS_LONG(".."),
-    SPLASH_STRINGS_LONG("..."),
-    SPLASH_STRINGS_LONG("Loading assets..."),
-    SPLASH_STRINGS_LONG("Loading strings..."),
-    SPLASH_STRINGS_LONG("Configuring wifi..."),
-    SPLASH_STRINGS_LONG("Configuring mesh network..."),
-    SPLASH_STRINGS_LONG("Loading flags..."),
-    SPLASH_STRINGS_SHORT("FLAG-{so_fast_84d45cceb0360957}"),
-    SPLASH_STRINGS_LONG("Configuring dependencies..."),
+    SPLASH_STRINGS_LONG("Loading ..."),
 };
 
 void screen_splash_init()
@@ -91,6 +60,7 @@ void screen_splash_init()
     lv_bar_set_range(progress, 0, sizeof(splash_strings) / sizeof(char *));
 
     screen_splash_set_string(0);
+    DisplayLedcBacklight::getInstance().start();
     return;
 }
 

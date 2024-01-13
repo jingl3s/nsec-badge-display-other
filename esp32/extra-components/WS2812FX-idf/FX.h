@@ -39,9 +39,12 @@ typedef uint8_t byte;
 #define DEFAULT_MODE       (uint8_t)0
 #define DEFAULT_SPEED      (uint8_t)128
 #define DEFAULT_COLOR      (uint32_t)0xFFAA00
-
+#ifndef MIN
 #define MIN(a,b) ((a)<(b)?(a):(b))
+#endif
+#ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
+#endif
 
 // the arduino 'map' has nothing to do with std::map :-/
 #define ArduinoMap(v, s1, e1, s2, e2) \

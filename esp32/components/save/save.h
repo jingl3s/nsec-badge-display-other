@@ -13,16 +13,11 @@ struct SaveData {
     uint8_t neopixel_mode;
     bool neopixel_is_on;
     int neopixel_color;
-    bool debug_enabled;
-    uint16_t debug_pin;
 
     bool debug_feature_enabled[debug_tab::count];
-    uint8_t mood_brightness;
-    uint8_t mood_mode;
-    lv_color_t mood_color;
+    uint8_t display_backlight;
+    uint8_t cup;
 
-    char wifi_ssid[32];
-    char wifi_password[32];
 };
 
 class Save

@@ -1,4 +1,4 @@
-#pragma once
+// #pragma once
 
 #ifndef SIMULATOR
 #include <esp_system.h>
@@ -11,23 +11,18 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#ifndef SIMULATOR
+namespace debug_tab {
+    enum {
+        score=0,
+        led,
+        // disk,
 
-namespace debug_tab
-{
-enum {
-    score = 0,
-    cup,
-    sounds,
-    led,
-#ifdef SDCARD_ENABLED
-    disk,
-#endif
-    count // keep last
-};
-} // namespace debug_tab
-#ifdef SDCARD_ENABLED
-namespace sd_info_rows
-{
+        count // keep last
+    };
+}
+
+namespace sd_info_rows {
 enum {
     inserted = 0,
     name,
@@ -39,8 +34,8 @@ enum {
 }
 #endif
 
-void screen_debug_init();
-void screen_debug_loop();
+void screen_debug_init(void);
+void screen_debug_loop(void);
 
 #ifdef __cplusplus
 }

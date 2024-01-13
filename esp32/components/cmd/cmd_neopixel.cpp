@@ -13,6 +13,8 @@ static struct {
     struct arg_end *end;
 } neopixel_args;
 
+static const char *TAG = "cmd";
+
 static int configure_neopixel(int argc, char **argv)
 {
     int nerrors = arg_parse(argc, argv, (void **)&neopixel_args);
@@ -25,6 +27,7 @@ static int configure_neopixel(int argc, char **argv)
     NeoPixel::getInstance().setBrightness(neopixel_args.brightness->ival[0]);
     NeoPixel::getInstance().setColor(neopixel_args.color->ival[0]);
     NeoPixel::getInstance().setMode(neopixel_args.mode->ival[0]);
+    ESP_LOGE(TAG, "CMD brightness %d, color %d, mode %d", neopixel_args.brightness->ival[0], neopixel_args.color->ival[0], neopixel_args.mode->ival[0]);
     Save::write_save();
     return 0;
 }

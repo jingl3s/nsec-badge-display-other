@@ -8,7 +8,7 @@
 #include "nvs_flash.h"
 #include <stdio.h>
 
-static const char *TAG="save";
+static const char *TAG = "save";
 
 #define STORAGE_NAMESPACE "storage"
 #define LOG_NAMESPACE "logs"
@@ -17,33 +17,15 @@ SaveData Save::save_data = {
     .neopixel_brightness = 255,
     .neopixel_mode = 5,
     .neopixel_is_on = true,
-    .neopixel_color = 0xffffff,
-#if CONFIG_BADGE_MESH_ADMIN_COMMANDS
-    .debug_enabled = true,
-#else
-    .debug_enabled = false,
-#endif
-    .debug_pin = 0,
+    .neopixel_color = 0xff00ff,
 
-    .debug_feature_enabled = {
-        true, // only mesh by default
-        false,
-        false,
-        false,
-        false,
-    },
-
-    .mood_brightness = 64,
-    .mood_mode = 0,
-    .mood_color = {
-        .ch = {
-            .red = 0b11111,
-            .blue = 0b11111,
+    .debug_feature_enabled =
+        {
+            true,
+            true,
         },
-    },
-
-    .wifi_ssid = {0},
-    .wifi_password = {0},
+    .display_backlight = 255,
+    .cup = 0
 };
 
 esp_err_t Save::write_save()
@@ -107,7 +89,7 @@ esp_err_t Save::clear_log_levels()
     }
 
     err = nvs_erase_all(my_handle);
-        ESP_LOGE(TAG, "%s: nvs erase all failed", __func__);
+    ESP_LOGE(TAG, "%s: nvs erase all failed", __func__);
     if (err != ESP_OK) {
         return err;
     }
@@ -156,9 +138,10 @@ esp_err_t Save::load_and_set_log_levels()
     esp_err_t err;
 
     err = nvs_open(LOG_NAMESPACE, NVS_READONLY, &my_handle);
-    if(err == ESP_ERR_NVS_NOT_FOUND) {
-        // Partition does not exist, and it is not created since we asked for READONLY.
-        // This is expected before name is actually set, we can silently return an error.
+    if (err == ESP_ERR_NVS_NOT_FOUND) {
+        // Partition does not exist, and it is not created since we asked for
+        // READONLY. This is expected before name is actually set, we can
+        // silently return an error.
         return ESP_FAIL;
     } else if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: nvs open failed", __func__);
@@ -166,15 +149,19 @@ esp_err_t Save::load_and_set_log_levels()
     }
 
     nvs_iterator_t it = NULL;
-    esp_err_t res = nvs_entry_find(NVS_DEFAULT_PART_NAME, LOG_NAMESPACE, NVS_TYPE_U8, &it);
-    while(res == ESP_OK) {
+    esp_err_t res =
+        nvs_entry_find(NVS_DEFAULT_PART_NAME, LOG_NAMESPACE, NVS_TYPE_U8, &it);
+    while (res == ESP_OK) {
         nvs_entry_info_t info;
         esp_log_level_t level;
 
-        nvs_entry_info(it, &info); // Can omit error check if parameters are guaranteed to be non-NULL
-        if(nvs_get_u8(my_handle, info.key, (uint8_t *)&level) == ESP_OK) {
+        nvs_entry_info(it, &info); // Can omit error check if parameters are
+                                   // guaranteed to be non-NULL
+        if (nvs_get_u8(my_handle, info.key, (uint8_t *)&level) == ESP_OK) {
+            level = ESP_LOG_DEBUG;
             esp_log_level_set(info.key, level);
-            ESP_LOGV(TAG, "Loaded saved log level '%u' for '%s'", (int)level, info.key);
+            ESP_LOGV(TAG, "Loaded saved log level '%u' for '%s'", (int)level,
+                     info.key);
         }
         res = nvs_entry_next(&it);
     }

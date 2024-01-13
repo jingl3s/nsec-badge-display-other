@@ -1,0 +1,14 @@
+Debug/
+.settings/
+lv_dev_tools/
+**/*.o
+demo
+.pydevproject
+/.metadata/
+/.tracecompass
+lv_drivers/
+lvgl/
+lv_nsec_badge/debug.c
+lv_nsec_badge/lv_utils.c
+lv_nsec_badge/score_teams.c
+lv_nsec_badge/score_teams.h
