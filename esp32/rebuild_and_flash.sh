@@ -1,3 +1,4 @@
+source ../esp-idf/export.sh
 idf.py build
 if [ $? -eq 0 ] ; then
   ./secure_reflash.sh
