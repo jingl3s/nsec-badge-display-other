@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "random": "cpp",
+    "functional": "cpp",
+    "algorithm": "c"
+  },
+  "C_Cpp.default.compilerPath": "/usr/bin/gcc"
+}

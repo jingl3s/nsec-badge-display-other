@@ -17,6 +17,7 @@ namespace debug_tab
 enum {
     score = 0,
     cup,
+    cards,
     sounds,
     led,
 #ifdef SDCARD_ENABLED
