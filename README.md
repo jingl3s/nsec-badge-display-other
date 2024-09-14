@@ -143,6 +143,13 @@ Once the installation is complete you can build the firmware and flash it to
 the badge:
 
 ```bash
+cd esp32/
+./rebuild_and_flash.sh
+```
+
+Alternative more manual
+
+```bash
 source esp-idf/export.sh
 cd esp32/
 idf.py build

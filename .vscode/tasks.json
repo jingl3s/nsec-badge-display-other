@@ -7,5 +7,12 @@
       "type": "shell",
       "problemMatcher": [],
     },
+    {
+      "label": "Launch simulation",
+      "command": "cd ${workspaceFolder}/simulation && ./demo",
+      "type": "shell",
+      
+      "problemMatcher": [],
+    },
   ]
 }
