@@ -183,7 +183,7 @@ const tournament_t mls_cup = {.title = "MLS",
 // Déclaration des équipes france 2024
 const char *france_cup_teams[] = {
     "Bordeaux",
-    "Lyon"
+    "Lyon",
     "Marseille",
     "Nantes",
     "Paris",
