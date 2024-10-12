@@ -195,6 +195,16 @@ const tournament_t france_cup = {.title = "france",
                               .teams = france_cup_teams,
                               .number_teams = sizeof(france_cup_teams) /
                                               sizeof(france_cup_teams[0])};
+// Déclaration des équipes Match sans noms
+const char *sans_noms_cup_teams[] = {
+    "Equipe 1",
+    "Equipe 2",
+    };
+
+const tournament_t sans_noms_cup = {.title = "Sans noms",
+                              .teams = sans_noms_cup_teams,
+                              .number_teams = sizeof(sans_noms_cup_teams) /
+                                              sizeof(sans_noms_cup_teams[0])};
 
 const char *mixed_all_soccer_teams[] = {
     // world_cup_teams
@@ -272,7 +282,7 @@ const tournament_t mixed_all_soccer_cup = {
 const tournament_t *tournaments[] = {
     &world_cup,   &europe_cup, &uefa_champions_cup,
     &tsubasa_cup, &france_cup, &mls_cup,    &mixed_all_soccer_cup,
-    &nba_cup,     &nhl_cup};
+    &nba_cup,     &nhl_cup, &sans_noms_cup};
 
 extern const tournament_t *tournaments[];
 
