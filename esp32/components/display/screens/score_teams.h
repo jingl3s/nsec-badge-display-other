@@ -87,8 +87,19 @@ const tournament_t uefa_champions_cup = {
         sizeof(uefa_champions_cup_teams) / sizeof(uefa_champions_cup_teams[0])};
 
 const char *tsubasa_cup_teams[] = {
-    "Nankatsu SC", "Meiwa",  "Furano",     "Musashi", "Hanawa",     "Naniwa",
-    "Toho",        "Ohyama", "Azuma-Ichi", "Hirado",  "Minami Uwa",
+    "Azuma-Ichi",
+    "Furano",
+    "Hanawa",
+    "Hirado",
+    "Meiwa",
+    "Minami Uwa",
+    "Musashi",
+    "Naniwa",
+    "Nankatsu SC",
+    "Ohyama",
+    "Otomo",
+    "Saporo FC",
+    "Toho",
 };
 
 const tournament_t tsubasa_cup = {.title = "Captain Tsubasa",
