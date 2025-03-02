@@ -14,6 +14,7 @@ typedef struct _tournament {
 } tournament_t;
 
 const char *world_cup_teams[] = {
+    "ALBANIE", 
     "ALLEMAGNE", "ANGLETERRE", "ARABIE SAOUDITE", "ARGENTINE", "BELGIQUE",
     "BRESIL",    "CANADA",     "CHINE",           "COSTA RICA","CROATIE", "ESPAGNE",
     "FRANCE",    "IRLANDE",    "ITALIE",          "JAPON",     "PAYS-BAS",
@@ -26,65 +27,87 @@ const tournament_t world_cup = {.title = "Monde",
                                                 sizeof(world_cup_teams[0])};
 
 const char *europe_cup_teams[] = {
-    "Arsenal (ENG)",
-    "West Ham United (ENG)",
+    "AC Milan (ITA)",          
+    "Ajax Amsterdam (NED)",
     "Anderlecht (BEL)",
-    "FCSB (ROU)",
-    "PSV Eindhoven (NED)",
-    "Bodø/Glimt (NOR)",
-    "FC Zurich (SUI)",
-    "AS Roma (ITA)",
-    "Ludogorets Razgrad (BUL)",
-    "Real Betis (ESP)",
-    "HJK Helsinki (FIN)",
-    "Braga (POR)",
-    "Hoffenheim (GER)",
-    "Lyon (FRA)",
-    "Slovan Bratislava (SVK)",
-    "Lazio Rome (ITA)",
-    "Feyenoord Rotterdam (NED)",
-    "Sturm Graz (AUT)",
-    "Midtjylland (DEN)",
-    "Manchester United (ENG)",
-    "Real Sociedad (ESP)",
-    "Sheriff Tiraspol (MDA)",
-    "Omonia Nicosie (CYP)",
-    "Olympiacos (GRE)",
-    "Eintracht Francfort (GER)",
     "Antwerp (BEL)",
-    "Fenerbahçe (TUR)",
+    "Arsenal (ENG)",
+    "As Monaco (MON)",
+    "AS Roma (ITA)",
+    "Aston Villa (ENG)",
+    "Atlanta Bergame (ITA)",
+    "Atletic Bilbao(ESP)",  
+    "Atletico Madrid (ESP)",   
+    "Az Alkamaar(NED)",
+    "Bayer Leverkusen (GER)",  
+    "Bayern Munich (GER)",     
+    "Benfica (POR)",
+    "Bodø/Glimt (NOR)",
+    "Borussia Dortmund (GER)", 
+    "Braga (POR)",
+    "Brest (FRA)",
+    "Celge(slo)",
     "Celtic (SCO)",
+    "Chelsea (ENG)",           
+    "Club Brugge (BEL)",       
+    "Copenhague (DEN)",
+    "Dinamo Zagreb (CRO)",     
+    "Eintracht Francfort (GER)",
+    "FC Barcelone (ESP)",
+    "FC Porto (POR)",
+    "FC Zurich (SUI)",
+    "FCSB (ROU)",
+    "Fenerbahçe (TUR)",
+    "Ferencvacos (HON)",
+    "Feyenoord Rotterdam (NED)",
+    "Galatasaray (TUR)",       
+    "HJK Helsinki (FIN)",
+    "Hoffenheim (GER)",
+    "Inter Milan (ITA)",       
+    "Juventus (ITA)",
+    "Lazio Rome (ITA)",
+    "Lille (FRA)",
+    "Liverpool (ENG)",
+    "Lokomotiv Moskow(RUS)",
+    "Ludogorets Razgrad (BUL)",
+    "Lugano(SUI)",
+    "Lyon (FRA)",
+    "Maccabi Haifa (ISR)",
+    "Manchester City (ENG)",
+    "Manchester United (ENG)", 
+    "Midtjylland (DEN)",
+    "Olympiacos (GRE)",
+    "Omonia Nicosie (CYP)",
+    "Paok(GRE)",
+    "PSG (FRA)",
+    "PSV Eindhoven (NED)",
+    "Rangers(SCO)",
+    "RasenBallsport leipzig(GER)",
+    "RB Leipzig (GER)",
+    "RB Salzburg (AUT)",
+    "Real Betis (ESP)",
+    "Real Madrid (ESP)",       
+    "Real Sociedad (ESP)",
+    "Red Bull Salzburg (AUT)",
+    "Sevilla FC (ESP)",
+    "Shakhtar Donetsk (UKR)",  
+    "Sheriff Tiraspol (MDA)",
+    "Slovan Bratislava (SVK)",
+    "Sporting Club Portugal(POR)",
+    "Sturm Graz (AUT)",
+    "Tottenham Hotspur (ENG)",
+    "Twente (NED)",
     "Union Berlin (GER)",
+    "Union Saint-Gilloise (FRA)",
+    "Viktoria Plzen (CZE)",
+    "West Ham United (ENG)",
+    "Wolsburg(GER)",
 };
 
 const tournament_t europe_cup = {.title = "Ligue Europe UEFA",
                                  .teams = europe_cup_teams,
                                  .number_teams = sizeof(europe_cup_teams) /
                                                  sizeof(europe_cup_teams[0])};
-
-const char *uefa_champions_cup_teams[] = {
-    "Bayern Munich (GER)",     "Manchester City (ENG)",
-    "Real Madrid (ESP)",       "Liverpool (ENG)",
-    "Chelsea (ENG)",           "PSG (FRA)",
-    "AC Milan (ITA)",          "FC Barcelone (ESP)",
-    "Atlético Madrid (ESP)",   "Juventus (ITA)",
-    "Borussia Dortmund (GER)", "RB Leipzig (GER)",
-    "Tottenham Hotspur (ENG)", "Ajax Amsterdam (NED)",
-    "Inter Milan (ITA)",       "Benfica (POR)",
-    "Manchester United (ENG)", "FC Porto (POR)",
-    "Shakhtar Donetsk (UKR)",  "Sevilla FC (ESP)",
-    "Bayer Leverkusen (GER)",  "RB Salzburg (AUT)",
-    "Club Brugge (BEL)",       "Celtic (SCO)",
-    "Galatasaray (TUR)",       "Viktoria Plzen (CZE)",
-    "Dinamo Zagreb (CRO)",     "Red Bull Salzburg (AUT)",
-    "Sheriff Tiraspol (MDA)",  "Maccabi Haifa (ISR)",
-    "Copenhague (DEN)"};
-
-const tournament_t uefa_champions_cup = {
-    .title = "Ligue Champions UEFA",
-    .teams = uefa_champions_cup_teams,
-    .number_teams =
-        sizeof(uefa_champions_cup_teams) / sizeof(uefa_champions_cup_teams[0])};
 
 const char *tsubasa_cup_teams[] = {
     "Azuma-Ichi",
@@ -202,10 +225,45 @@ const char *france_cup_teams[] = {
     "Toulouse",
     };
 
-const tournament_t france_cup = {.title = "france",
+const tournament_t france_cup = {.title = "FRANCE",
                               .teams = france_cup_teams,
                               .number_teams = sizeof(france_cup_teams) /
                                               sizeof(france_cup_teams[0])};
+
+const char *inazuma_eleven_cup_teams[] = {
+    "Alpine",
+    "Chaos",
+    "Cloitre Sacre",
+    "College zeus",
+    "Diamond Dust",
+    "Epsilon Plus",
+    "Epsilon",
+    "Genesis",
+    "Kirkwood",
+    "L'Academie Alius",
+    "L'equipe de Fauxshore",
+    "L'institue oculte",
+    "La Nouvelle Royal Academy",
+    "Le college wife",
+    "Les cyberthec",
+    "Les Empereurs Noirs",
+    "Les Lions du Desert",
+    "Mary Times",
+    "Otaku",
+    "Prominence",
+    "Royale academie",
+    "Shuriken",
+    "Tempete des Gemeaux",
+    "Terria",
+};
+
+
+const tournament_t inazuma_eleven_cup = {.title = "Inazuma Eleven",
+                              .teams = inazuma_eleven_cup_teams,
+                              .number_teams = sizeof(inazuma_eleven_cup_teams) /
+                                              sizeof(inazuma_eleven_cup_teams[0])};
+
+
 // Déclaration des équipes Match sans noms
 const char *sans_noms_cup_teams[] = {
     "Equipe 1",
@@ -217,83 +275,28 @@ const tournament_t sans_noms_cup = {.title = "Sans noms",
                               .number_teams = sizeof(sans_noms_cup_teams) /
                                               sizeof(sans_noms_cup_teams[0])};
 
-const char *mixed_all_soccer_teams[] = {
-    // world_cup_teams
-    "ALLEMAGNE",
-    "ARABIE SAOUDITE",
-    "ARGENTINE",
-    "BELGIQUE",
-    "BRESIL",
-    "CANADA",
-    "CHINE",
-    "COSTA RICA",
-    "ESPAGNE",
-    "FRANCE",
-    "IRLANDE",
-    "ITALIE",
-    "JAPON",
-    "PAYS-BAS",
-    "PORTUGAL",
-    "ROUMANIE",
-    "SUISSE",
-    "TUNISIE",
+// Déclaration des équipes Match sans noms
+const char *personal_cup_teams[] = {
+    "Stockolm",
+    "Ultra Madrid",
+    "Goohre (Leg)",
+    "Ninjago Smh",
+    "Qazw Sertyuo Fsyq (Pay)",
+    "Der Iona",
+    
+    };
 
-    // uefa_champions_cup_teams
-    "AC Milan (ITA)",
-    "Ajax Amsterdam (NED)",
-    "Atlético Madrid (ESP)",
-    "Bayer Leverkusen (GER)",
-    "Bayern Munich (GER)",
-    "Benfica (POR)",
-    "Borussia Dortmund (GER)",
-    "Celtic (SCO)",
-    "Chelsea (ENG)",
-    "Club Brugge (BEL)",
-    "Copenhague (DEN)"
-    "Dinamo Zagreb (CRO)",
-    "FC Barcelone (ESP)",
-    "FC Porto (POR)",
-    "Galatasaray (TUR)",
-    "Inter Milan (ITA)",
-    "Juventus (ITA)",
-    "Liverpool (ENG)",
-    "Maccabi Haifa (ISR)",
-    "Manchester City (ENG)",
-    "Manchester United (ENG)",
-    "PSG (FRA)",
-    "RB Leipzig (GER)",
-    "RB Salzburg (AUT)",
-    "Real Madrid (ESP)",
-    "Red Bull Salzburg (AUT)",
-    "Sevilla FC (ESP)",
-    "Shakhtar Donetsk (UKR)",
-    "Sheriff Tiraspol (MDA)",
-    "Tottenham Hotspur (ENG)",
-    "Viktoria Plzen (CZE)",
-    // Tsubasa
-    "Azuma-Ichi",
-    "Furano",
-    "Hanawa",
-    "Hirado",
-    "Meiwa",
-    "Minami Uwa",
-    "Musashi",
-    "Naniwa",
-    "Nankatsu SC",
-    "Ohyama",
-    "Toho",
-};
+const tournament_t personal_cup = {.title = "Personnelle",
+                              .teams = personal_cup_teams,
+                              .number_teams = sizeof(personal_cup_teams) /
+                                              sizeof(personal_cup_teams[0])};
 
-const tournament_t mixed_all_soccer_cup = {
-    .title = "Melange Soccer",
-    .teams = mixed_all_soccer_teams,
-    .number_teams =
-        sizeof(mixed_all_soccer_teams) / sizeof(mixed_all_soccer_teams[0])};
 
 const tournament_t *tournaments[] = {
-    &world_cup,   &europe_cup, &uefa_champions_cup,
-    &tsubasa_cup, &france_cup, &mls_cup,    &mixed_all_soccer_cup,
-    &nba_cup,     &nhl_cup, &sans_noms_cup};
+    &world_cup,   &europe_cup,
+    &tsubasa_cup, &france_cup, &mls_cup,   
+    &nba_cup,     &nhl_cup, &inazuma_eleven_cup, &personal_cup, 
+    &sans_noms_cup};
 
 extern const tournament_t *tournaments[];
 

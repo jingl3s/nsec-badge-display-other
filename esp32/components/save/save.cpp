@@ -25,7 +25,8 @@ SaveData Save::save_data = {
             true,
         },
     .display_backlight = 255,
-    .cup = 0
+    .cup = 0,
+    .cup_2 = 0
 };
 
 esp_err_t Save::write_save()

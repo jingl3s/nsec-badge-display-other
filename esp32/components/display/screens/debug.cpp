@@ -215,13 +215,20 @@ bool save_to_perform; // used to refresh mood imediately when UI is interacted
                       // with
 static lv_obj_t *score_label1, *score_label2, *score_team_label_pl1,
     *score_team_label_pl2;
-static lv_obj_t *score_bkgrnd_pl1, *score_bkgrnd_pl2;
+static lv_obj_t *score_team_bkgrnd_pl1, *score_team_bkgrnd_pl2;
+static lv_obj_t *score_label_cart_yellow_team_pl1, *score_label_cart_yellow_team_pl2;
+static lv_obj_t *score_label_cart_red_team_pl1, *score_label_cart_red_team_pl2;
+static lv_obj_t *score_label_cart_red_team_bkgrnd_pl1, *score_label_cart_red_team_bkgrnd_pl2;
+static lv_obj_t *score_label_cart_yellow_team_bkgrnd_pl1, *score_label_cart_yellow_team_bkgrnd_pl2;
+
+
 uint8_t score_team_pl1, score_team_pl2;
+uint8_t index_team_color_pl1, index_team_color_pl2;
 
 unsigned int score_pl1, score_pl2;
 bool score_team_random_gen;
-static uint8_t cup_selected, cups_count;
-static lv_obj_t *cup_label_selected;
+static uint8_t cup_selected, cup_selected_2, cups_count;
+static lv_obj_t *cup_label_selected, *cup_label_selected_2;
 
 #define CUP_LABELS_SIZE (60)
 lv_obj_t *cup_labels[CUP_LABELS_SIZE];
@@ -673,32 +680,37 @@ static void score_handler_btn2(lv_obj_t *btn, lv_event_t event)
         break;
     }
     }
-
     return;
 }
 
-static void score_update_teams()
+static void score_update_teams_pl1()
 {
-    ESP_LOGE(TAG, "pl1 %d, pl2 %d\n", score_team_pl1, score_team_pl2);
+    ESP_LOGE(TAG, "pl1 %d\n", score_team_pl1);
     lv_label_set_text(score_team_label_pl1,
                       tournaments[cup_selected]->teams[score_team_pl1]);
-    lv_label_set_text(score_team_label_pl2,
-                      tournaments[cup_selected]->teams[score_team_pl2]);
     lv_label_set_text(card_team_label,
                       tournaments[cup_selected]->teams[score_team_pl1]);
 
-    uint8_t index_team_color_pl1, index_team_color_pl2;
     index_team_color_pl1 = score_team_pl1 % teams_color_size;
-    index_team_color_pl2 = score_team_pl2 % teams_color_size;
-    lv_obj_set_style_local_bg_color(score_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+    lv_obj_set_style_local_bg_color(score_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
                                     LV_STATE_DEFAULT,
                                     teams_color[index_team_color_pl1]);
-    lv_obj_set_style_local_bg_color(score_bkgrnd_pl2, LV_OBJ_PART_MAIN,
-                                    LV_STATE_DEFAULT,
-                                    teams_color[index_team_color_pl2]);
     lv_obj_set_style_local_bg_color(card_team_bkgrnd, LV_OBJ_PART_MAIN,
                                     LV_STATE_DEFAULT,
                                     teams_color[index_team_color_pl1]);
+    card_teams_set();
+}
+
+static void score_update_teams_pl2()
+{
+    ESP_LOGE(TAG, "pl2 %d\n", score_team_pl2);
+    lv_label_set_text(score_team_label_pl2,
+                      tournaments[cup_selected_2]->teams[score_team_pl2]);
+
+    index_team_color_pl2 = score_team_pl2 % teams_color_size;
+    lv_obj_set_style_local_bg_color(score_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT,
+                                    teams_color[index_team_color_pl2]);
     card_teams_set();
 }
 
@@ -709,7 +721,7 @@ static void score_change_team_pl1(lv_obj_t *btn, lv_event_t event)
     case LV_EVENT_CLICKED: {
         score_team_pl1 =
             (score_team_pl1 + 1) % tournaments[cup_selected]->number_teams;
-        score_update_teams();
+        score_update_teams_pl1();
         break;
     }
     }
@@ -721,10 +733,71 @@ static void score_change_team_pl2(lv_obj_t *btn, lv_event_t event)
     switch (event) {
     case LV_EVENT_CLICKED: {
         score_team_pl2 =
-            (score_team_pl2 + 1) % tournaments[cup_selected]->number_teams;
-        score_update_teams();
+            (score_team_pl2 + 1) % tournaments[cup_selected_2]->number_teams;
+        score_update_teams_pl2();
         break;
     }
+    }
+}
+
+static void score_card_update_event_handler()
+{
+    char varname[7];
+    
+    if (card_red_players_counter[0] == 0)
+    {
+        lv_label_set_text(score_label_cart_red_team_pl1, "");
+        lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    }
+    else
+    {
+        snprintf(varname, sizeof(varname), "%d", card_red_players_counter[0]);
+        lv_label_set_text(score_label_cart_red_team_pl1, varname);
+        lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_RED);
+    }
+
+    if (card_red_players_counter[1] == 0)
+    {
+        lv_label_set_text(score_label_cart_red_team_pl2, "");
+        lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    }
+    else
+    {
+        snprintf(varname, sizeof(varname), "%d", card_red_players_counter[1]);
+        lv_label_set_text(score_label_cart_red_team_pl2, varname);
+        lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_RED);
+    }
+    
+    if (card_yellow_players_counter[0] == 0)
+    {
+        lv_label_set_text(score_label_cart_yellow_team_pl1, "");
+        lv_obj_set_style_local_bg_color(score_label_cart_yellow_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    }
+    else
+    {
+        snprintf(varname, sizeof(varname), "%d", card_yellow_players_counter[0]);
+        lv_label_set_text(score_label_cart_yellow_team_pl1, varname);
+        lv_obj_set_style_local_bg_color(score_label_cart_yellow_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_YELLOW);
+    }
+
+    if (card_yellow_players_counter[1] == 0)
+    {
+        lv_label_set_text(score_label_cart_yellow_team_pl2, "");
+        lv_obj_set_style_local_bg_color(score_label_cart_yellow_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    }
+    else
+    {
+        snprintf(varname, sizeof(varname), "%d", card_yellow_players_counter[1]);
+        lv_label_set_text(score_label_cart_yellow_team_pl2, varname);
+        lv_obj_set_style_local_bg_color(score_label_cart_yellow_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT, LV_COLOR_YELLOW);
     }
 }
 
@@ -736,11 +809,12 @@ static void score_replace_teams()
     }
 
     score_team_pl1 = random() % tournaments[cup_selected]->number_teams;
-    score_team_pl2 = random() % tournaments[cup_selected]->number_teams;
+    score_team_pl2 = random() % tournaments[cup_selected_2]->number_teams;
     while (score_team_pl1 == score_team_pl2) {
         score_team_pl2 = random() % tournaments[cup_selected]->number_teams;
     }
-    score_update_teams();
+    score_update_teams_pl1();
+    score_update_teams_pl2();
 }
 
 static void score_reset(lv_obj_t *btn, lv_event_t event)
@@ -751,6 +825,7 @@ static void score_reset(lv_obj_t *btn, lv_event_t event)
         lv_label_set_text(score_label1, "0");
         lv_label_set_text(score_label2, "0");
         score_replace_teams();
+        score_card_update_event_handler();
         break;
     }
     }
@@ -786,6 +861,28 @@ static void score_debut(lv_obj_t *btn, lv_event_t event)
     }
 
     return;
+}
+
+static void score_bkgrnd_pl1_color_event_handler(lv_obj_t *_kb, lv_event_t e)
+{
+    if (e == LV_EVENT_CLICKED) {
+        index_team_color_pl1 = (index_team_color_pl1 + 1) % teams_color_size;
+        ESP_LOGE(TAG, "Selected color index pl1 %d\n", index_team_color_pl1);
+        lv_obj_set_style_local_bg_color(score_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT,
+            teams_color[index_team_color_pl1]);
+    }
+}
+
+static void score_bkgrnd_pl2_color_event_handler(lv_obj_t *_kb, lv_event_t e)
+{
+    if (e == LV_EVENT_CLICKED) {
+        index_team_color_pl2 = (index_team_color_pl2 + 1) % teams_color_size;
+        ESP_LOGE(TAG, "Selected color index pl2 %d\n", index_team_color_pl2);
+        lv_obj_set_style_local_bg_color(score_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+            LV_STATE_DEFAULT,
+            teams_color[index_team_color_pl2]);
+    }
 }
 
 static lv_obj_t *tab_score_init(debug_tabs_t *tab)
@@ -828,6 +925,46 @@ static lv_obj_t *tab_score_init(debug_tabs_t *tab)
     lv_obj_set_style_local_text_font(score_label1, LV_LABEL_PART_MAIN,
                                      LV_STATE_DEFAULT, &lv_font_montserrat_48);
 
+    // Create a background object to set a label color
+    score_label_cart_red_team_bkgrnd_pl1 = lv_obj_create(h, NULL);
+    lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, LV_COLOR_RED);
+    lv_obj_set_style_local_border_width(score_label_cart_red_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_width( score_label_cart_red_team_bkgrnd_pl1, 15);
+    lv_obj_set_height(score_label_cart_red_team_bkgrnd_pl1, 20);
+    lv_obj_set_style_local_radius(score_label_cart_red_team_bkgrnd_pl1,
+        LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+    score_label_cart_red_team_pl1 = lv_label_create(score_label_cart_red_team_bkgrnd_pl1, NULL);
+    lv_label_set_text(score_label_cart_red_team_pl1, "");
+    lv_obj_set_style_local_border_width(score_label_cart_red_team_pl1, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_left(score_label_cart_red_team_pl1, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 3);
+    lv_obj_set_style_local_pad_top(score_label_cart_red_team_pl1, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 2);
+    lv_obj_set_style_local_text_color(score_label_cart_red_team_pl1, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+
+    // Create a background object to set a label color
+    score_label_cart_red_team_bkgrnd_pl2 = lv_obj_create(h, NULL);
+    lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, LV_COLOR_RED);
+    lv_obj_set_style_local_border_width(score_label_cart_red_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_width( score_label_cart_red_team_bkgrnd_pl2, 15);
+    lv_obj_set_height(score_label_cart_red_team_bkgrnd_pl2, 20);
+    lv_obj_set_style_local_radius(score_label_cart_red_team_bkgrnd_pl2,
+        LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+    score_label_cart_red_team_pl2 = lv_label_create(score_label_cart_red_team_bkgrnd_pl2, NULL);
+    lv_label_set_text(score_label_cart_red_team_pl2, "");
+    lv_obj_set_style_local_border_width(score_label_cart_red_team_pl2, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_left(score_label_cart_red_team_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 3);
+    lv_obj_set_style_local_pad_top(score_label_cart_red_team_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 2);
+    lv_obj_set_style_local_text_color(score_label_cart_red_team_pl2, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+
     lv_obj_t *btn2 = lv_btn_create(h, NULL);
     lv_obj_set_event_cb(btn2, score_handler_btn2);
     lv_obj_set_width(btn2, object_width);
@@ -841,14 +978,16 @@ static lv_obj_t *tab_score_init(debug_tabs_t *tab)
                                      LV_STATE_DEFAULT, &lv_font_montserrat_48);
 
     // Create a background object to set a label color
-    score_bkgrnd_pl1 = lv_obj_create(h, NULL);
-    lv_obj_set_style_local_bg_color(score_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+    score_team_bkgrnd_pl1 = lv_obj_create(h, NULL);
+    lv_obj_set_style_local_bg_color(score_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
                                     LV_STATE_DEFAULT, LV_COLOR_ORANGE);
-    lv_obj_set_width(score_bkgrnd_pl1, object_width);
-    lv_obj_set_style_local_border_width(score_bkgrnd_pl1, LV_OBJ_PART_MAIN,
+    lv_obj_set_width(score_team_bkgrnd_pl1, object_width);
+    lv_obj_set_style_local_border_width(score_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
                                         LV_STATE_DEFAULT, 0);
 
-    score_team_label_pl1 = lv_label_create(score_bkgrnd_pl1, NULL);
+    lv_obj_set_event_cb(score_team_bkgrnd_pl1, score_bkgrnd_pl1_color_event_handler);
+
+    score_team_label_pl1 = lv_label_create(score_team_bkgrnd_pl1, NULL);
     lv_obj_set_style_local_pad_top(score_team_label_pl1, LV_OBJ_PART_MAIN,
                                    LV_STATE_DEFAULT, 13);
 
@@ -860,14 +999,58 @@ static lv_obj_t *tab_score_init(debug_tabs_t *tab)
                                       LV_STATE_DEFAULT, LV_COLOR_BLACK);
 
     // Create a background object to set a label color
-    score_bkgrnd_pl2 = lv_obj_create(h, NULL);
-    lv_obj_set_style_local_bg_color(score_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+    score_label_cart_yellow_team_bkgrnd_pl1 = lv_obj_create(h, NULL);
+    lv_obj_set_style_local_bg_color(score_label_cart_yellow_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
                                     LV_STATE_DEFAULT, LV_COLOR_YELLOW);
-    lv_obj_set_width(score_bkgrnd_pl2, object_width);
-    lv_obj_set_style_local_border_width(score_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+    lv_obj_set_style_local_border_width(score_label_cart_yellow_team_bkgrnd_pl1, LV_OBJ_PART_MAIN,
                                         LV_STATE_DEFAULT, 0);
 
-    score_team_label_pl2 = lv_label_create(score_bkgrnd_pl2, NULL);
+    lv_obj_set_width( score_label_cart_yellow_team_bkgrnd_pl1, 15);
+    lv_obj_set_height(score_label_cart_yellow_team_bkgrnd_pl1, 20);
+    lv_obj_set_style_local_radius(score_label_cart_yellow_team_bkgrnd_pl1,
+        LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+        
+    score_label_cart_yellow_team_pl1 = lv_label_create(score_label_cart_yellow_team_bkgrnd_pl1, NULL);
+    lv_label_set_text(score_label_cart_yellow_team_pl1, "");
+    lv_obj_set_style_local_border_width(score_label_cart_yellow_team_pl1, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_left(score_label_cart_yellow_team_pl1, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 3);
+    lv_obj_set_style_local_pad_top(score_label_cart_yellow_team_pl1, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 2);
+
+    // Create a background object to set a label color
+    score_label_cart_yellow_team_bkgrnd_pl2 = lv_obj_create(h, NULL);
+    lv_obj_set_style_local_bg_color(score_label_cart_yellow_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, LV_COLOR_YELLOW);
+    lv_obj_set_style_local_border_width(score_label_cart_yellow_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+
+    lv_obj_set_width( score_label_cart_yellow_team_bkgrnd_pl2, 15);
+    lv_obj_set_height(score_label_cart_yellow_team_bkgrnd_pl2, 20);
+    lv_obj_set_style_local_radius(score_label_cart_yellow_team_bkgrnd_pl2,
+        LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+
+    score_label_cart_yellow_team_pl2 = lv_label_create(score_label_cart_yellow_team_bkgrnd_pl2, NULL);
+    lv_label_set_text(score_label_cart_yellow_team_pl2, "");
+    lv_obj_set_style_local_border_width(score_label_cart_yellow_team_pl2, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_left(score_label_cart_yellow_team_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 3);
+    lv_obj_set_style_local_pad_top(score_label_cart_yellow_team_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 2);
+
+    // Create a background object to set a label color
+    score_team_bkgrnd_pl2 = lv_obj_create(h, NULL);
+    lv_obj_set_style_local_bg_color(score_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, LV_COLOR_YELLOW);
+    lv_obj_set_width(score_team_bkgrnd_pl2, object_width);
+    lv_obj_set_style_local_border_width(score_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_event_cb(score_team_bkgrnd_pl2, score_bkgrnd_pl2_color_event_handler);
+
+
+    score_team_label_pl2 = lv_label_create(score_team_bkgrnd_pl2, NULL);
     lv_label_set_align(score_team_label_pl2, LV_LABEL_ALIGN_CENTER);
     lv_label_set_long_mode(score_team_label_pl2, LV_LABEL_LONG_SROLL_CIRC);
     lv_label_set_text(score_team_label_pl2, "-");
@@ -925,6 +1108,7 @@ static lv_obj_t *tab_score_init(debug_tabs_t *tab)
     // score_replace_teams();
     score_team_pl1 = 0;
     score_team_pl2 = 0;
+    score_card_update_event_handler();
 
     return parent;
 }
@@ -965,6 +1149,54 @@ static void cup_handler(lv_obj_t *btn, lv_event_t event)
     return;
 }
 
+static void cup_2_handler(lv_obj_t *btn, lv_event_t event)
+{
+    switch (event) {
+    case LV_EVENT_CLICKED: {
+        cup_selected_2 = (cup_selected_2 + 1) % cups_count;
+        printf("Cup selected:%d\n", cup_selected_2);
+        lv_label_set_text(cup_label_selected_2, tournaments[cup_selected_2]->title);
+        printf("Teams size:%u\n", tournaments[cup_selected_2]->number_teams);
+        score_team_pl1 = 0;
+        score_team_pl2 = 0;
+        lv_label_set_text(score_team_label_pl1, "-");
+        lv_label_set_text(score_team_label_pl2, "-");
+
+        cup_update_displayed_teams();
+#ifndef SIMULATOR
+        Save::save_data.cup_2 = cup_selected_2;
+#endif
+        save_to_perform = true;
+        break;
+    }
+    }
+    return;
+}
+
+static void cup_handler_copy(lv_obj_t *btn, lv_event_t event)
+{
+    switch (event) {
+    case LV_EVENT_CLICKED: {
+        cup_selected_2 = cup_selected;
+        printf("Cup selected:%d\n", cup_selected_2);
+        lv_label_set_text(cup_label_selected_2, tournaments[cup_selected_2]->title);
+        printf("Teams size:%u\n", tournaments[cup_selected_2]->number_teams);
+        score_team_pl1 = 0;
+        score_team_pl2 = 0;
+        lv_label_set_text(score_team_label_pl1, "-");
+        lv_label_set_text(score_team_label_pl2, "-");
+
+        cup_update_displayed_teams();
+#ifndef SIMULATOR
+        Save::save_data.cup_2 = cup_selected_2;
+#endif
+        save_to_perform = true;
+        break;
+    }
+    }
+    return;
+}
+
 static lv_obj_t *tab_cup_init(debug_tabs_t *tab)
 {
     const uint8_t obj_height = 40;
@@ -995,11 +1227,41 @@ static lv_obj_t *tab_cup_init(debug_tabs_t *tab)
     lv_label_set_align(cup_label_selected, LV_LABEL_ALIGN_CENTER);
     lv_obj_align(cup_label_selected, NULL, LV_ALIGN_CENTER, 0, 0);
 
+
+    lv_obj_t *cup_button_copy = lv_btn_create(parent, NULL);
+    lv_obj_set_width(cup_button_copy, 50);
+    lv_obj_set_style_local_radius(cup_button_copy, LV_OBJ_PART_MAIN,
+                                  LV_STATE_DEFAULT, 10);
+    lv_obj_set_height(cup_button_copy, obj_height);
+    lv_obj_set_event_cb(cup_button_copy, cup_handler_copy);
+
+    lv_obj_t *cup_label_copy = lv_label_create(cup_button_copy, NULL);
+    lv_label_set_text(cup_label_copy, "Copy");
+    lv_label_set_align(cup_label_copy, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(cup_label_copy, NULL, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_t *cup_button_2 = lv_btn_create(parent, NULL);
+    // bouton position absolue si besoin mais sans set_scrl_layout
+    // lv_obj_set_x(cup_button, 160);
+    // lv_obj_set_y(cup_button, 0);
+    lv_obj_set_width(cup_button_2, 200);
+    lv_obj_set_style_local_radius(cup_button_2, LV_OBJ_PART_MAIN,
+                                  LV_STATE_DEFAULT, 10);
+    lv_obj_set_height(cup_button_2, obj_height);
+    lv_obj_set_event_cb(cup_button_2, cup_2_handler);
+
+    cup_label_selected_2 = lv_label_create(cup_button_2, NULL);
+    lv_label_set_text(cup_label_selected_2, "0");
+    lv_label_set_align(cup_label_selected_2, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(cup_label_selected_2, NULL, LV_ALIGN_CENTER, 0, 0);
+
 #ifndef SIMULATOR
     cup_selected = Save::save_data.cup;
+    cup_selected_2 = Save::save_data.cup_2;
 #endif
     cups_count = sizeof(tournaments) / sizeof(tournaments[0]);
     lv_label_set_text(cup_label_selected, tournaments[cup_selected]->title);
+    lv_label_set_text(cup_label_selected_2, tournaments[cup_selected_2]->title);
 
     for (int i = 0; i < CUP_LABELS_SIZE; i++) {
         cup_labels[i] = lv_label_create(parent, NULL);
@@ -1042,7 +1304,7 @@ static void card_team_label_event_handler(lv_obj_t *_kb, lv_event_t e)
         if (card_index_team == 0) {
 
             lv_label_set_text(card_team_label,
-                              tournaments[cup_selected]->teams[score_team_pl2]);
+                              tournaments[cup_selected_2]->teams[score_team_pl2]);
             lv_obj_set_style_local_bg_color(
                 card_team_bkgrnd, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,
                 teams_color[score_team_pl2 % teams_color_size]);
@@ -1069,7 +1331,7 @@ static void card_teams_set()
 
     // # Team 2
     lv_label_set_text(card_team2_label,
-                      tournaments[cup_selected]->teams[score_team_pl2]);
+                      tournaments[cup_selected_2]->teams[score_team_pl2]);
     lv_obj_set_style_local_bg_color(
         card_team2_bkgrnd, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT,
         teams_color[score_team_pl2 % teams_color_size]);
@@ -1161,6 +1423,7 @@ static void card_yellow_event(lv_obj_t *_kb, lv_event_t e)
                 card_yellow_team2_textarea,
                 card_yellow_players_regrouped[card_index_team]);
         }
+        score_card_update_event_handler();
     }
 }
 
@@ -1220,6 +1483,7 @@ static void card_red_event(lv_obj_t *_kb, lv_event_t e)
             lv_textarea_set_text(card_red_team2_textarea,
                                  card_red_players_regrouped[card_index_team]);
         }
+        score_card_update_event_handler();
     }
 }
 

@@ -17,6 +17,7 @@ struct SaveData {
     bool debug_feature_enabled[debug_tab::count];
     uint8_t display_backlight;
     uint8_t cup;
+    uint8_t cup_2;
 
 };
 
