@@ -2,13 +2,13 @@
 
 ## Général
 
-L'appareil est issue de la competition CTF NorthSec 2023 https://nsec.io/
+L'appareil est issue de la competition CTF NorthSec 2023 <https://nsec.io/>
 
 L'objectif est de transformer en écran pour gérer les score de jeux de soccer en mode local pour des jeux avec des personnages en plastiques.
 
 <img src="medias/ECran_NSEC_001.webp"
      alt="Démo écran principale"
-     style="float: center; margin-right: 10px;" 
+     style="float: center; margin-right: 10px;"
      width="640px" />
 
 [Video démonstration](medias/demo.mkv)
@@ -17,7 +17,7 @@ L'objectif est de transformer en écran pour gérer les score de jeux de soccer 
 
 ## Informations techniques
 
-La carte de base est `ESP32-2432S028R` disponible ici https://www.aliexpress.com/item/1005004502250619.html?spm=a2g0o.order_list.order_list_main.144.76881802IyLAn1
+La carte de base est `ESP32-2432S028R` disponible ici <https://www.aliexpress.com/item/1005004502250619.html?spm=a2g0o.order_list.order_list_main.144.76881802IyLAn1>
 Le microcontrôleur est `ESP32-D0WDQ6` avec wifi and bluetooth.
 
 Le logiciel utilisé pour le développement est ESP-IDF `Espressif IoT Development Framework`. Il permet de gérer correctement le secure boot. L'équipe du NorthSec qui a fait le développement de base à ajouté suffisamment d'informations utiles pour réaliser la recompilation.
@@ -25,8 +25,8 @@ Le logiciel utilisé pour le développement est ESP-IDF `Espressif IoT Developme
 ## Contraintes
 
 L'équipe du NorthSec a activé Secure Boot sur le ESP32 embarqué sur la carte qui contraint d'utiliser cette chaîne identique car non disponible avec autre chose.
-Le code est issue du partage par l'équipe du Nsec https://github.com/nsec/nsec-badge-controller-screen.git
-L'analyse avec un objectif précédent a été reporté dans un GitHub gist https://gist.github.com/jingl3s/d3b9c6e94bbc9816efcc9a8bb6d47e0d
+Le code est issue du partage par l'équipe du Nsec <https://github.com/nsec/nsec-badge-controller-screen.git>
+L'analyse avec un objectif précédent a été reporté dans un GitHub gist <https://gist.github.com/jingl3s/d3b9c6e94bbc9816efcc9a8bb6d47e0d>
 
 ## Morceaux importants
 
@@ -68,12 +68,12 @@ Non réalisé
   - GPIO PIN 21
   - Dossier utilisé [esp32/components/display_ledc_backlight](esp32/components/display_ledc_backlight)
   - UTilisation des fonctions depuis [esp32/components/buzzer/buzzer.cpp](esp32/components/buzzer/buzzer.cpp)
-  - Doc constructeur de la lib https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/ledc.html
+  - Doc constructeur de la lib <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/ledc.html>
   - Utilisation du paramètre Duty permet de gérer le cycle de la PWM pour mettre plus ou moins lumineux
   - Idées depuis :
-    - Tutoriel qui apres mise à jour avec le code permettait de l'utiliser https://medium.com/jungletronics/esp32-idf-ledc-get-started-f973c4b7e41e
-    - https://github.com/roughleaf/ESP32-LEDC-library-with-ESP-IDF-CPP/blob/main/CPPLEDC/src/CPPLEDC/cppledc.cpp
-    - Réglages de base https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino
+    - Tutoriel qui apres mise à jour avec le code permettait de l'utiliser <https://medium.com/jungletronics/esp32-idf-ledc-get-started-f973c4b7e41e>
+    - <https://github.com/roughleaf/ESP32-LEDC-library-with-ESP-IDF-CPP/blob/main/CPPLEDC/src/CPPLEDC/cppledc.cpp>
+    - Réglages de base <https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino>
 
 ## Difficultés
 
@@ -124,7 +124,11 @@ The badge firmware is based on
 ```bash
 git clone https://github.com/jingl3s/nsec-badge-display-other.git
 cd nsec-badge-display-other/
+pyenv local 3.12
 ./esp-idf/install.sh
+
+. ./esp-idf/export.sh
+python -m pip install setuptools==78.1.1
 
 # You need to manually install the Pillow package.
 pip install Pillow jinja2
@@ -158,6 +162,21 @@ idf.py build
 If for some reason `idf.py` is not able to complete the operation, refer to the
 [ESP-IDF documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html#step-9-flash-onto-the-device).
 
+## Linux serial for the user
+
+`/etc/udev/rules.d/50-udev-serial.rules`
+
+```text
+# serial
+# this is the general rule that covers ttyUSB0 among others
+KERNEL=="tty[A-Z]*[0-9]|pppox[0-9]*|ircomm[0-9]*|noz[0-9]*|rfcomm[0-9]*", GROUP="uucp"
+
+# relax the permissions just for ttyUSB0
+KERNEL=="ttyUSB0",              MODE="0666"
+```
+
+Hint from: <https://bbs.archlinux.org/viewtopic.php?id=86088>
+
 ## Flashing
 
 Devices used during the competition were using ESP's secure boot v2 to prevent solving challenges by simply reading the flash data. The flash encryption key and the secure boot key are included in this repository.
@@ -183,9 +202,9 @@ If, for some reason, you want to flash a board with secure boot for the first ti
 ## Liens utils
 
 - LVGL
-  - Onglet (Tab View) https://docs.lvgl.io/7.11/widgets/tabview.html?highlight=tab%20view
-  - Style https://docs.lvgl.io/7.11/overview/style.html?highlight=background
-  - Code source https://github.com/lvgl/lvgl/tree/master
-- Marges et padding https://docs.lvgl.io/8.2/overview/coords.html?highlight=margin
-- Luminosité https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino
-- Demos https://github.com/lvgl/lv_demos
+  - Onglet (Tab View) <https://docs.lvgl.io/7.11/widgets/tabview.html?highlight=tab%20view>
+  - Style <https://docs.lvgl.io/7.11/overview/style.html?highlight=background>
+  - Code source <https://github.com/lvgl/lvgl/tree/master>
+- Marges et padding <https://docs.lvgl.io/8.2/overview/coords.html?highlight=margin>
+- Luminosité <https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino>
+- Demos <https://github.com/lvgl/lv_demos>
