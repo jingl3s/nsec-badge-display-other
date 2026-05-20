@@ -14,12 +14,11 @@ typedef struct _tournament {
 } tournament_t;
 
 const char *world_cup_teams[] = {
-    "ALBANIE",
-    "ALLEMAGNE", "ANGLETERRE", "ARABIE SAOUDITE", "ARGENTINE", "BELGIQUE",
-    "BRESIL",    "CANADA",     "CHINE",           "COSTA RICA","CROATIE", "ESPAGNE",
-    "FRANCE",    "IRLANDE",    "ITALIE",          "JAPON",     "PAYS-BAS",
-    "PORTUGAL",  "ROUMANIE",   "SUISSE",          "TUNISIE"
-};
+    "ALBANIE",  "ALLEMAGNE", "ANGLETERRE", "ARABIE SAOUDITE", "ARGENTINE",
+    "BELGIQUE", "BRESIL",    "CANADA",     "CHINE",           "COSTA RICA",
+    "CROATIE",  "ESPAGNE",   "FRANCE",     "IRLANDE",         "ITALIE",
+    "JAPON",    "PAYS-BAS",  "PORTUGAL",   "ROUMANIE",        "SUISSE",
+    "TUNISIE"};
 
 const tournament_t world_cup = {.title = "Monde",
                                 .teams = world_cup_teams,
@@ -60,6 +59,7 @@ const char *europe_cup_teams[] = {
     "Fenerbahçe (TUR)",
     "Ferencvacos (HON)",
     "Feyenoord Rotterdam (NED)",
+    "fk quarabag (AZE)",
     "Galatasaray (TUR)",
     "HJK Helsinki (FIN)",
     "Hoffenheim (GER)",
@@ -71,7 +71,8 @@ const char *europe_cup_teams[] = {
     "Lokomotiv Moskow(RUS)",
     "Ludogorets Razgrad (BUL)",
     "Lugano(SUI)",
-    "Lyon (FRA)",
+    "Lyon (FRA)	",
+    " (ENG)",
     "Maccabi Haifa (ISR)",
     "Manchester City (ENG)",
     "Manchester United (ENG)",
@@ -110,19 +111,9 @@ const tournament_t europe_cup = {.title = "Ligue Europe UEFA",
                                                  sizeof(europe_cup_teams[0])};
 
 const char *tsubasa_cup_teams[] = {
-    "Azuma-Ichi",
-    "Furano",
-    "Hanawa",
-    "Hirado",
-    "Meiwa",
-    "Minami Uwa",
-    "Musashi",
-    "Naniwa",
-    "Nankatsu SC",
-    "Ohyama",
-    "Otomo",
-    "Saporo FC",
-    "Toho",
+    "Azuma-Ichi", "Furano",    "Hanawa", "Hirado",      "Meiwa",
+    "Minami Uwa", "Musashi",   "Naniwa", "Nankatsu SC", "Ohyama",
+    "Otomo",      "Saporo FC", "Toho",
 };
 
 const tournament_t tsubasa_cup = {.title = "Captain Tsubasa",
@@ -148,34 +139,40 @@ const tournament_t nba_cup = {.title = "NBA",
                               .number_teams = sizeof(nba_cup_teams) /
                                               sizeof(nba_cup_teams[0])};
 
-const char *nhl_cup_teams[] = {
+const char *nhl_east_teams[] = {
     // Conférence Atlantique
-
     "Boston Bruins", "Buffalo Sabres", "Detroit Red Wings", "Florida Panthers",
     "Montreal Canadiens", "Ottawa Senators", "Tampa Bay Lightning",
     "Toronto Maple Leafs",
 
     // Conférence Métropolitaine
-
     "Carolina Hurricanes", "Columbus Blue Jackets", "New Jersey Devils",
     "New York Islanders", "New York Rangers", "Philadelphia Flyers",
     "Pittsburgh Penguins", "Washington Capitals",
 
-    // Conférence Centrale
+    // Nouvelles franchises 2026
+    "Atlanta Thrashers"};
 
-    "Chicago Blackhawks", "Colorado Avalanche", "Dallas Stars",
-    "Minnesota Wild", "Nashville Predators", "St. Louis Blues", "Winnipeg Jets",
+const tournament_t nhl_east_cup = {.title = "NHL (EST)",
+                                   .teams = nhl_east_teams,
+                                   .number_teams = sizeof(nhl_east_teams) /
+                                                   sizeof(nhl_east_teams[0])};
+
+const char *nhl_west_teams[] = {
+    // Conférence Centrale
+    "Chicago Blackhawks", "Colorado Avalanche", "Dallas Stars", "Houston Aeros",
+    "Minnesota Wild", "Nashville Predators", "St. Louis Blues", "Utah Mammoth",
+    "Winnipeg Jets",
 
     // Conférence Pacifique
-
     "Anaheim Ducks", "Arizona Coyotes", "Calgary Flames", "Edmonton Oilers",
-    "Los Angeles Kings", "San Jose Sharks", "Seattle Kraken",
-    "Vancouver Canucks"};
+    "Golden Knights de Vegas", "Los Angeles Kings", "San Jose Sharks",
+    "Seattle Kraken", "Vancouver Canucks"};
 
-const tournament_t nhl_cup = {.title = "NHL",
-                              .teams = nhl_cup_teams,
-                              .number_teams = sizeof(nhl_cup_teams) /
-                                              sizeof(nhl_cup_teams[0])};
+const tournament_t nhl_west_cup = {.title = "NHL (OUEST)",
+                                   .teams = nhl_west_teams,
+                                   .number_teams = sizeof(nhl_west_teams) /
+                                                   sizeof(nhl_west_teams[0])};
 
 // Déclaration des équipes MLS 2024
 const char *mls_cup_teams[] = {
@@ -216,19 +213,13 @@ const tournament_t mls_cup = {.title = "MLS",
 
 // Déclaration des équipes france 2024
 const char *france_cup_teams[] = {
-    "Bordeaux",
-    "Lyon",
-    "Marseille",
-    "Nantes",
-    "Paris",
-    "Rodez",
-    "Toulouse",
-    };
+    "Bordeaux", "Lyon", "Marseille", "Nantes", "Paris", "Rodez", "Toulouse",
+};
 
 const tournament_t france_cup = {.title = "FRANCE",
-                              .teams = france_cup_teams,
-                              .number_teams = sizeof(france_cup_teams) /
-                                              sizeof(france_cup_teams[0])};
+                                 .teams = france_cup_teams,
+                                 .number_teams = sizeof(france_cup_teams) /
+                                                 sizeof(france_cup_teams[0])};
 
 const char *inazuma_eleven_cup_teams[] = {
     "Alpine",
@@ -260,23 +251,23 @@ const char *inazuma_eleven_cup_teams[] = {
     "Wild"
 };
 
-
-const tournament_t inazuma_eleven_cup = {.title = "Inazuma Eleven",
-                              .teams = inazuma_eleven_cup_teams,
-                              .number_teams = sizeof(inazuma_eleven_cup_teams) /
-                                              sizeof(inazuma_eleven_cup_teams[0])};
-
+const tournament_t inazuma_eleven_cup = {
+    .title = "Inazuma Eleven",
+    .teams = inazuma_eleven_cup_teams,
+    .number_teams =
+        sizeof(inazuma_eleven_cup_teams) / sizeof(inazuma_eleven_cup_teams[0])};
 
 // Déclaration des équipes Match sans noms
 const char *sans_noms_cup_teams[] = {
     "Equipe 1",
     "Equipe 2",
-    };
+};
 
 const tournament_t sans_noms_cup = {.title = "Sans noms",
-                              .teams = sans_noms_cup_teams,
-                              .number_teams = sizeof(sans_noms_cup_teams) /
-                                              sizeof(sans_noms_cup_teams[0])};
+                                    .teams = sans_noms_cup_teams,
+                                    .number_teams =
+                                        sizeof(sans_noms_cup_teams) /
+                                        sizeof(sans_noms_cup_teams[0])};
 
 // Déclaration des équipes Match sans noms
 const char *personal_cup_teams[] = {
@@ -294,19 +285,18 @@ const char *personal_cup_teams[] = {
     "Ninjago Smh",
     "Qazw Sertyuo Fsyq (Pay)",
     "Der Iona",
-    };
+};
 
-const tournament_t personal_cup = {.title = "Personnelle",
-                              .teams = personal_cup_teams,
-                              .number_teams = sizeof(personal_cup_teams) /
-                                              sizeof(personal_cup_teams[0])};
-
+const tournament_t personal_cup = {
+    .title = "Personnelle",
+    .teams = personal_cup_teams,
+    .number_teams = sizeof(personal_cup_teams) / sizeof(personal_cup_teams[0])};
 
 const tournament_t *tournaments[] = {
-    &world_cup,   &europe_cup,
-    &tsubasa_cup, &france_cup, &mls_cup,
-    &nba_cup,     &nhl_cup, &inazuma_eleven_cup, &personal_cup,
-    &sans_noms_cup};
+    &world_cup,    &europe_cup,   &tsubasa_cup,
+    &france_cup,   &mls_cup,      &nba_cup,
+    &nhl_east_cup, &nhl_west_cup, &inazuma_eleven_cup,
+    &personal_cup, &sans_noms_cup};
 
 extern const tournament_t *tournaments[];
 
