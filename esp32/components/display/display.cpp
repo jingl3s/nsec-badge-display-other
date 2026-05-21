@@ -82,7 +82,9 @@ static void touch_feedback(struct _lv_indev_drv_t *, lv_event_t evt)
 {
     switch(evt) {
         case LV_EVENT_CLICKED: {
-            Buzzer::getInstance().buzz(100, 50);
+            if (Save::save_data.bip_enabled) {
+                Buzzer::getInstance().buzz(100, 50);
+            }
             break;
         }
     }

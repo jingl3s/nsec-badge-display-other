@@ -555,6 +555,21 @@ static void led_color_event(lv_obj_t *cpicker, lv_event_t event)
 
 #endif
 
+#ifndef SIMULATOR
+static void bip_enable_event(lv_obj_t *sw, lv_event_t event)
+{
+    switch (event) {
+    case LV_EVENT_VALUE_CHANGED: {
+        Save::save_data.bip_enabled = lv_switch_get_state(sw);
+        save_to_perform = true;
+        break;
+    }
+    }
+
+    return;
+}
+#endif
+
 static lv_obj_t *tab_config_init(debug_tabs_t *tab)
 {
     lv_obj_t *h, *cpicker;
@@ -597,6 +612,15 @@ static lv_obj_t *tab_config_init(debug_tabs_t *tab)
                         LV_ANIM_OFF);
     // lv_slider_set_value(slider, Save::save_data.neopixel_brightness,
     // LV_ANIM_OFF);
+#endif
+
+#ifndef SIMULATOR
+    // Bip tactile switch
+    lv_obj_t *bip_sw =
+        create_switch_with_label(h, "Bip tactile", Save::save_data.bip_enabled);
+    lv_obj_set_event_cb(bip_sw, bip_enable_event);
+#else
+    create_switch_with_label(h, "Bip tactile", true);
 #endif
 
     // Controls container

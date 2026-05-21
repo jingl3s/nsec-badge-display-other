@@ -18,6 +18,7 @@ struct SaveData {
     uint8_t display_backlight;
     uint8_t cup;
     uint8_t cup_2;
+    bool bip_enabled;
 
 };
 
