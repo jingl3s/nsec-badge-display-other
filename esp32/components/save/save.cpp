@@ -43,18 +43,18 @@ esp_err_t Save::write_save()
 
     err = nvs_set_blob(my_handle, "save", reinterpret_cast<void *>(&save_data),
                        sizeof(save_data));
-
     if (err != ESP_OK) {
+        nvs_close(my_handle);
         return err;
     }
 
     err = nvs_commit(my_handle);
     if (err != ESP_OK) {
-        return err;
+        ESP_LOGE(TAG, "%s: nvs commit failed", __func__);
     }
 
     nvs_close(my_handle);
-    return ESP_OK;
+    return err;
 }
 
 esp_err_t Save::load_save()
@@ -68,15 +68,25 @@ esp_err_t Save::load_save()
         return err;
     }
 
-    size_t save_size = sizeof(save_data);
-    err = nvs_get_blob(my_handle, "save", reinterpret_cast<void *>(&save_data),
-                       &save_size);
+    // Query the stored blob size first to handle struct version mismatches.
+    size_t stored_size = 0;
+    err = nvs_get_blob(my_handle, "save", nullptr, &stored_size);
     if (err != ESP_OK) {
+        nvs_close(my_handle);
         return err;
     }
 
+    // Read only what was stored; fields beyond stored_size keep their
+    // static-initializer defaults (handles firmware upgrades adding new fields).
+    size_t read_size = stored_size < sizeof(save_data) ? stored_size : sizeof(save_data);
+    err = nvs_get_blob(my_handle, "save", reinterpret_cast<void *>(&save_data),
+                       &read_size);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "%s: nvs_get_blob failed (%d)", __func__, err);
+    }
+
     nvs_close(my_handle);
-    return ESP_OK;
+    return err;
 }
 
 esp_err_t Save::clear_log_levels()
