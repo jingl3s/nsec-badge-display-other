@@ -20,6 +20,7 @@ enum {
     cards,
     sounds,
     led,
+    chrono,
 #ifdef SDCARD_ENABLED
     disk,
 #endif

@@ -69,12 +69,63 @@ static lv_obj_t *tab_score_init(debug_tabs_t *tab);
 static lv_obj_t *tab_cup_init(debug_tabs_t *tab);
 static lv_obj_t *tab_card_init(debug_tabs_t *tab);
 static lv_obj_t *tab_sounds_init(debug_tabs_t *tab);
+static lv_obj_t *tab_chrono_init(debug_tabs_t *tab);
+
+static long countdown_seconds = 0;
+static bool countdown_running = false;
+static lv_obj_t *label_chrono;
+static lv_obj_t *label_start_stop;
+static lv_obj_t *chrono_parent = NULL;
+
+static void update_chrono_label()
+{
+    if (label_chrono) {
+        int m = countdown_seconds / 60;
+        int s = countdown_seconds % 60;
+        lv_label_set_text_fmt(label_chrono, "%02d:%02d", m, s);
+    }
+}
+
+static void chrono_add_time_event_handler(lv_obj_t *obj, lv_event_t e)
+{
+    if (e == LV_EVENT_CLICKED) {
+        int seconds = (int)(intptr_t)lv_obj_get_user_data(obj);
+        countdown_seconds += seconds;
+        update_chrono_label();
+    }
+}
+
+static void chrono_start_stop_event_handler(lv_obj_t *obj, lv_event_t e)
+{
+    if (e == LV_EVENT_CLICKED) {
+        countdown_running = !countdown_running;
+        lv_label_set_text(label_start_stop, countdown_running ? "STOP" : "START");
+        // if (countdown_running) {
+        //     NeoPixel::getInstance().setColor(0x000000); // Red
+        // }
+    }
+}
+
+static void chrono_reset_event_handler(lv_obj_t *obj, lv_event_t e)
+{
+    if (e == LV_EVENT_CLICKED) {
+        countdown_running = false;
+        countdown_seconds = 0;
+        lv_label_set_text(label_start_stop, "START");
+        update_chrono_label();
+        // Reset screen color if it was changed
+        if (chrono_parent) {
+            lv_obj_set_style_local_bg_color(chrono_parent, LV_PAGE_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+        }
+    }
+}
 
 static const char *TITRE_TAB_SCORE = "SCORE";
-static const char *TITRE_TAB_CUP = "COUPE";
+static const char *TITRE_TAB_CUP = "Co.";
 static const char *TITRE_TAB_CARD = "Cart.";
 static const char *TITRE_TAB_CONFIG = "CFG";
-static const char *TITRE_TAB_SOUNDS = "SONS";
+static const char *TITRE_TAB_SOUNDS = "SO.";
+static const char *TITRE_TAB_CHRONO = "Ch.";
 
 #ifndef SIMULATOR
 static TickType_t last_save_at =
@@ -85,6 +136,7 @@ debug_tabs_t debug_tabs[debug_tab::count] = {
     {.name = TITRE_TAB_SCORE, .init = tab_score_init},
     {.name = TITRE_TAB_CUP, .init = tab_cup_init},
     {.name = TITRE_TAB_CARD, .init = tab_card_init},
+    {.name = TITRE_TAB_CHRONO, .init = tab_chrono_init},
     {.name = TITRE_TAB_SOUNDS, .init = tab_sounds_init},
     {.name = TITRE_TAB_CONFIG, .init = tab_config_init},
 #ifdef SDCARD_ENABLED
@@ -767,7 +819,7 @@ static void score_change_team_pl2(lv_obj_t *btn, lv_event_t event)
 static void score_card_update_event_handler()
 {
     char varname[7];
-    
+
     if (card_red_players_counter[0] == 0)
     {
         lv_label_set_text(score_label_cart_red_team_pl1, "");
@@ -795,7 +847,7 @@ static void score_card_update_event_handler()
         lv_obj_set_style_local_bg_color(score_label_cart_red_team_bkgrnd_pl2, LV_OBJ_PART_MAIN,
             LV_STATE_DEFAULT, LV_COLOR_RED);
     }
-    
+
     if (card_yellow_players_counter[0] == 0)
     {
         lv_label_set_text(score_label_cart_yellow_team_pl1, "");
@@ -1033,7 +1085,7 @@ static lv_obj_t *tab_score_init(debug_tabs_t *tab)
     lv_obj_set_height(score_label_cart_yellow_team_bkgrnd_pl1, 20);
     lv_obj_set_style_local_radius(score_label_cart_yellow_team_bkgrnd_pl1,
         LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
-        
+
     score_label_cart_yellow_team_pl1 = lv_label_create(score_label_cart_yellow_team_bkgrnd_pl1, NULL);
     lv_label_set_text(score_label_cart_yellow_team_pl1, "");
     lv_obj_set_style_local_border_width(score_label_cart_yellow_team_pl1, LV_OBJ_PART_MAIN,
@@ -1921,6 +1973,136 @@ static lv_obj_t *tab_sounds_init(debug_tabs_t *tab)
     return parent;
 }
 
+static lv_obj_t *tab_chrono_init(debug_tabs_t *tab)
+{
+    static lv_style_t style_chrono_large;
+    static bool style_init = false;
+    if (!style_init) {
+        lv_style_init(&style_chrono_large);
+        lv_style_set_text_font(&style_chrono_large, LV_STATE_DEFAULT, &lv_font_montserrat_48);
+        style_init = true;
+    }
+
+#ifdef SIMULATOR
+    lv_obj_t *parent = lv_tabview_add_tab(tab_view, TITRE_TAB_CHRONO);
+#else
+    lv_obj_t *parent = lv_tabview_add_tab(tab_view, tab->name);
+#endif
+    chrono_parent = parent;
+    lv_page_set_scrl_layout(parent, LV_LAYOUT_COLUMN_MID);
+
+    // lv_page_set_scrl_layout(parent, LV_LAYOUT_PRETTY_MID);
+    // Controls container
+    // lv_page_set_scrollbar_mode(parent, LV_SCROLLBAR_MODE_OFF);
+    // lv_page_set_scroll_propagation(parent, false);
+
+    // Align content from middle or top for the 2nd line
+    // h = create_container(parent, NULL, LV_LAYOUT_PRETTY_MID, true);
+    //  h = score_controls_container = create_container(parent, NULL,
+    //  LV_LAYOUT_GRID, true);
+
+    // Reduire l'espace entre les composants au minimum
+
+
+
+
+
+    // Top container for time and main controls
+    lv_obj_t *top_cont = lv_cont_create(parent, NULL);
+    lv_obj_set_style_local_pad_inner(top_cont, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+
+    lv_obj_set_style_local_pad_top(top_cont, LV_OBJ_PART_MAIN,
+                                   LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_bottom(top_cont, LV_OBJ_PART_MAIN,
+                                      LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_left(top_cont, LV_OBJ_PART_MAIN,
+                                    LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_right(top_cont, LV_OBJ_PART_MAIN,
+                                     LV_STATE_DEFAULT, 0);
+
+    lv_obj_set_style_local_margin_bottom(top_cont, LV_OBJ_PART_MAIN,
+                                         LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_margin_top(top_cont, LV_OBJ_PART_MAIN,
+                                      LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_margin_left(top_cont, LV_OBJ_PART_MAIN,
+                                       LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_margin_right(top_cont, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+
+    lv_obj_set_style_local_pad_top(top_cont, LV_OBJ_PART_MAIN,
+                                   LV_STATE_DEFAULT, 10);
+    lv_obj_set_style_local_pad_bottom(top_cont, LV_OBJ_PART_MAIN,
+                                      LV_STATE_DEFAULT, 10);
+    lv_obj_set_style_local_margin_top(top_cont, LV_OBJ_PART_MAIN,
+                                      LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_margin_bottom(top_cont, LV_OBJ_PART_MAIN,
+                                         LV_STATE_DEFAULT, 0);
+
+
+    lv_cont_set_layout(top_cont, LV_LAYOUT_PRETTY_MID);
+    lv_cont_set_fit2(top_cont, LV_FIT_MAX, LV_FIT_TIGHT);
+    // lv_obj_set_style_local_pad_all(top_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_border_width(top_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
+
+    // Timer display
+    label_chrono = lv_label_create(top_cont, NULL);
+    lv_obj_add_style(label_chrono, LV_LABEL_PART_MAIN, &style_chrono_large);
+    update_chrono_label();
+
+    // Start/Stop and Reset buttons container (stacked to the right)
+    lv_obj_t *cont2 = lv_cont_create(top_cont, NULL);
+    lv_cont_set_layout(cont2, LV_LAYOUT_COLUMN_MID);
+    lv_cont_set_fit(cont2, LV_FIT_TIGHT);
+    // lv_obj_set_style_local_pad_all(cont2, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_pad_inner(cont2, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_border_width(cont2, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_bg_opa(cont2, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+
+    lv_obj_t *btn_ss = lv_btn_create(cont2, NULL);
+    lv_obj_set_width(btn_ss, 80);
+    lv_obj_set_event_cb(btn_ss, chrono_start_stop_event_handler);
+    label_start_stop = lv_label_create(btn_ss, NULL);
+    lv_label_set_text(label_start_stop, countdown_running ? "STOP" : "START");
+
+    lv_obj_t *btn_reset = lv_btn_create(cont2, NULL);
+    lv_obj_set_width(btn_reset, 80);
+    lv_obj_set_event_cb(btn_reset, chrono_reset_event_handler);
+    lv_obj_t *lbl_reset = lv_label_create(btn_reset, NULL);
+    lv_label_set_text(lbl_reset, "RESET");
+
+    // Buttons container for adding time (bottom row)
+    lv_obj_t *cont = lv_cont_create(top_cont, NULL);
+    lv_cont_set_layout(cont, LV_LAYOUT_PRETTY_MID);
+    lv_cont_set_fit2(cont, LV_FIT_MAX, LV_FIT_TIGHT);
+    lv_obj_set_style_local_pad_inner(cont, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+    // lv_obj_set_style_local_pad_all(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_border_width(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
+
+    const struct {
+        const char *name;
+        int seconds;
+    } time_btns[] = {
+        {"+10s", 10},
+        {"+30s", 30},
+        {"+1m", 60},
+    };
+
+    for (int i = 0; i < 3; i++) {
+        lv_obj_t *btn = lv_btn_create(cont, NULL);
+        lv_obj_set_width(btn, 70);
+        lv_obj_set_user_data(btn, (void *)(intptr_t)time_btns[i].seconds);
+        lv_obj_set_event_cb(btn, chrono_add_time_event_handler);
+        lv_obj_t *lbl = lv_label_create(btn, NULL);
+        lv_label_set_text(lbl, time_btns[i].name);
+    }
+
+    // Remove padding from the tab page itself
+    // lv_obj_set_style_local_pad_all(parent, LV_PAGE_PART_BG, LV_STATE_DEFAULT, 0);
+    // lv_obj_set_style_local_pad_all(parent, LV_PAGE_PART_SCROLLABLE, LV_STATE_DEFAULT, 0);
+
+    return parent;
+}
+
 void screen_debug_init()
 {
     score_pl1 = 0;
@@ -1979,6 +2161,7 @@ void screen_debug_init()
     tab_score_init(NULL);
     tab_cup_init(NULL);
     tab_card_init(NULL);
+    tab_chrono_init(NULL);
     tab_sounds_init(NULL);
     tab_config_init(NULL);
 
@@ -1991,6 +2174,30 @@ void screen_debug_init()
 
 void screen_debug_loop()
 {
+    static uint32_t last_chrono_tick = 0;
+    uint32_t now_ms = lv_tick_get();
+    if (countdown_running && now_ms - last_chrono_tick >= 1000) {
+        last_chrono_tick = now_ms;
+        if (countdown_seconds > 0) {
+            countdown_seconds--;
+            update_chrono_label();
+            if (countdown_seconds == 0) {
+                countdown_running = false;
+                if (label_start_stop) {
+                    lv_label_set_text(label_start_stop, "START");
+                }
+#ifndef SIMULATOR
+                Buzzer::getInstance().play(Buzzer::Sounds::LevelUp);
+                // NeoPixel::getInstance().setColor(0xFF0000); // Red
+#endif
+                if (chrono_parent) {
+                    lv_obj_set_style_local_bg_color(chrono_parent, LV_PAGE_PART_BG,
+                                                   LV_STATE_DEFAULT, LV_COLOR_RED);
+                }
+            }
+        }
+    }
+
     if (save_to_perform) {
 
         TickType_t now = xTaskGetTickCount();

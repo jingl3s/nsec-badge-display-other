@@ -12,6 +12,7 @@ extern "C" {
 
 extern lv_style_t style_box;
 extern lv_style_t style_row_container; // no padding or margin
+extern lv_style_t style_no_top_margin; // no padding or margin
 
 lv_obj_t *create_switch_with_label(lv_obj_t *parent, const char *text,
                                    bool enabled = false);
