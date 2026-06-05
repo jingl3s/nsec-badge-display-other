@@ -16,7 +16,10 @@ namespace debug_tab {
     enum {
         score=0,
         led,
-        // disk,
+#ifdef SDCARD_ENABLED
+        disk,
+        image_viewer,
+#endif
 
         count // keep last
     };

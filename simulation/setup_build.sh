@@ -19,5 +19,11 @@ fi
 if [ ! -e lv_nsec_badge/score_teams.h ] ; then
   ln $PWD/../esp32/components/display/screens/score_teams.h lv_nsec_badge/score_teams.h -s
 fi
+if [ ! -e lv_nsec_badge/image_viewer.c ] ; then
+  ln $PWD/../esp32/components/display/screens/image_viewer.cpp lv_nsec_badge/image_viewer.c -s
+fi
+if [ ! -e lv_nsec_badge/image_viewer.h ] ; then
+  ln $PWD/../esp32/components/display/screens/image_viewer.h lv_nsec_badge/image_viewer.h -s
+fi
 make
 ./demo

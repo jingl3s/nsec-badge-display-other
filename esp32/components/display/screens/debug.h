@@ -23,6 +23,7 @@ enum {
     chrono,
 #ifdef SDCARD_ENABLED
     disk,
+    image_viewer,
 #endif
     count // keep last
 };

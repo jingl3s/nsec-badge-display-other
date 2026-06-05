@@ -17,9 +17,11 @@
 #include "neopixel.h"
 #include "save.h"
 #include "screens/debug.h"
+#include "screens/image_viewer.h"
 #include "screens/score_teams.h"
 #else
 #include "debug.h"
+#include "image_viewer.h"
 #include "score_teams.h"
 #endif
 
@@ -66,6 +68,7 @@ static char disk_current_path[1024];
 static lv_obj_t *disk_list, *disk_explorer, *disk_path_value;
 
 static lv_obj_t *tab_config_init(debug_tabs_t *tab);
+static lv_obj_t *tab_images_init(debug_tabs_t *tab);
 static lv_obj_t *tab_score_init(debug_tabs_t *tab);
 static lv_obj_t *tab_cup_init(debug_tabs_t *tab);
 static lv_obj_t *tab_card_init(debug_tabs_t *tab);
@@ -129,6 +132,7 @@ static const char *TITRE_TAB_CARD = "Cart.";
 static const char *TITRE_TAB_CONFIG = "CFG";
 static const char *TITRE_TAB_SOUNDS = "SO.";
 static const char *TITRE_TAB_CHRONO = "Ch.";
+static const char *TITRE_TAB_IMAGES = "IMG";
 
 #ifndef SIMULATOR
 static TickType_t last_save_at =
@@ -143,6 +147,10 @@ debug_tabs_t debug_tabs[debug_tab::count] = {
     {.name = TITRE_TAB_CHRONO, .init = tab_chrono_init},
     {.name = TITRE_TAB_SOUNDS, .init = tab_sounds_init},
     {.name = TITRE_TAB_CONFIG, .init = tab_config_init},
+#ifdef SDCARD_ENABLED
+    {.name = "---", .init = NULL},
+    {.name = TITRE_TAB_IMAGES, .init = tab_images_init},
+#endif
 };
 
 static const char *FX_mode_names[] = {
@@ -2615,6 +2623,15 @@ static lv_obj_t *tab_chrono_init(debug_tabs_t *tab)
     return parent;
 }
 
+static lv_obj_t *tab_images_init(debug_tabs_t *tab)
+{
+#ifdef SDCARD_ENABLED
+    return tab_images_init_real(tab_view, tab->name);
+#else
+    return NULL;
+#endif
+}
+
 void screen_debug_init()
 {
     score_pl1 = 0;
@@ -2678,6 +2695,7 @@ void screen_debug_init()
     tab_chrono_init(NULL);
     tab_sounds_init(NULL);
     tab_config_init(NULL);
+    tab_images_init_real(tab_view, TITRE_TAB_IMAGES);
     load_latest_match_from_sd(false);
 #endif
 
