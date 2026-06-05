@@ -358,6 +358,11 @@ static lv_obj_t *create_kv_row_labels(lv_obj_t *parent, const char *name)
 
 bool disk_info_displayed = false;
 
+// One-shot reload of the latest saved match at boot. The SD card is mounted
+// asynchronously, so the reload is deferred to screen_debug_loop() and runs
+// on the first card detection.
+static bool match_boot_load_pending = true;
+
 static void disk_enable_event(lv_obj_t *sw, lv_event_t event)
 {
     switch (event) {
@@ -491,11 +496,16 @@ static void disk_refresh_files()
 
 static void save_match_to_sd()
 {
+    // A match is being recorded: a late SD card insertion must not clobber
+    // the current state with the previously saved match.
+    match_boot_load_pending = false;
+
     if (Disk::getInstance().getCardState() != Disk::CardState::Present) {
         return;
     }
 
-    if (Disk::getInstance().isEnabled()) {
+    // The SD subsystem must be enabled for the FAT mount to be valid
+    if (!Disk::getInstance().isEnabled()) {
         return;
     }
 
@@ -1462,13 +1472,17 @@ static void parse_card_players(char *card_str, char *players_list[], uint8_t *co
     }
 }
 
-static void load_latest_match_from_sd()
+// show_popups: user feedback for the manual button; silent for the automatic
+// boot-time reload (a missing or empty file is normal on first start).
+static void load_latest_match_from_sd(bool show_popups)
 {
     char file_path[80];
 #ifndef SIMULATOR
 #ifdef SDCARD_ENABLED
     if (Disk::getInstance().getCardState() != Disk::CardState::Present) {
-        popup("Erreur: carte SD non detectee");
+        if (show_popups) {
+            popup("Erreur: carte SD non detectee");
+        }
         return;
     }
     snprintf(file_path, sizeof(file_path), "%s/matches.tsv",
@@ -1483,18 +1497,26 @@ static void load_latest_match_from_sd()
     FILE *f = fopen(file_path, "r");
     if (f == NULL) {
         ESP_LOGE(TAG, "Failed to open %s for reading", file_path);
-        popup("Erreur: impossible de lire matches.tsv");
+        if (show_popups) {
+            popup("Erreur: impossible de lire matches.tsv");
+        }
         return;
     }
 
-    char line[1024];
-    char last_line[1024] = "";
+    // Static: the GUI task stack is only 4096 bytes (display.cpp); 2 KB of
+    // locals here overflow it and reboot the ESP32. Safe because this is only
+    // ever called from the LVGL task.
+    static char line[1024];
+    static char last_line[1024];
+    last_line[0] = '\0';
     bool found_line = false;
 
     // Read header line
     if (fgets(line, sizeof(line), f) == NULL) {
         fclose(f);
-        popup("Erreur: fichier vide");
+        if (show_popups) {
+            popup("Erreur: fichier vide");
+        }
         return;
     }
 
@@ -1513,7 +1535,9 @@ static void load_latest_match_from_sd()
     fclose(f);
 
     if (!found_line) {
-        popup("Erreur: aucune donnee de match");
+        if (show_popups) {
+            popup("Erreur: aucune donnee de match");
+        }
         return;
     }
 
@@ -1522,7 +1546,9 @@ static void load_latest_match_from_sd()
     memset(fields, 0, sizeof(fields));
     int count = split_tsv_line(last_line, fields, 11);
     if (count < 6) {
-        popup("Erreur: colonnes manquantes");
+        if (show_popups) {
+            popup("Erreur: colonnes manquantes");
+        }
         return;
     }
 
@@ -1554,7 +1580,9 @@ static void load_latest_match_from_sd()
     }
 
     if (cup1_idx == -1 || cup2_idx == -1) {
-        popup("Erreur: tournois non trouves");
+        if (show_popups) {
+            popup("Erreur: tournois non trouves");
+        }
         return;
     }
 
@@ -1576,7 +1604,9 @@ static void load_latest_match_from_sd()
     }
 
     if (team1_idx == -1 || team2_idx == -1) {
-        popup("Erreur: equipes non trouvees");
+        if (show_popups) {
+            popup("Erreur: equipes non trouvees");
+        }
         return;
     }
 
@@ -1712,15 +1742,13 @@ static void load_latest_match_from_sd()
     Save::save_data.cup_2 = cup_selected_2;
     Save::write_save();
 #endif
-
-    popup("Dernier match charge!");
 }
 
 static void cup_handler_load(lv_obj_t *btn, lv_event_t event)
 {
     switch (event) {
     case LV_EVENT_CLICKED: {
-        load_latest_match_from_sd();
+        load_latest_match_from_sd(true);
         break;
     }
     }
@@ -1784,6 +1812,7 @@ static lv_obj_t *tab_cup_init(debug_tabs_t *tab)
     lv_label_set_align(cup_label_selected_2, LV_LABEL_ALIGN_CENTER);
     lv_obj_align(cup_label_selected_2, NULL, LV_ALIGN_CENTER, 0, 0);
 
+    // Laissé pour le futur chargement depuis SD, mais pas de besoin immédiat et ça prend de la place dans l'UI
     // lv_obj_t *cup_button_load = lv_btn_create(parent, NULL);
     // lv_obj_set_width(cup_button_load, 200);
     // lv_obj_set_style_local_radius(cup_button_load, LV_OBJ_PART_MAIN,
@@ -1792,7 +1821,7 @@ static lv_obj_t *tab_cup_init(debug_tabs_t *tab)
     // lv_obj_set_event_cb(cup_button_load, cup_handler_load);
 
     // lv_obj_t *cup_label_load = lv_label_create(cup_button_load, NULL);
-    // lv_label_set_text(cup_label_load, "Charger SD");
+    // lv_label_set_text(cup_label_load, "Charger depuis SD");
     // lv_label_set_align(cup_label_load, LV_LABEL_ALIGN_CENTER);
     // lv_obj_align(cup_label_load, NULL, LV_ALIGN_CENTER, 0, 0);
 
@@ -2649,7 +2678,7 @@ void screen_debug_init()
     tab_chrono_init(NULL);
     tab_sounds_init(NULL);
     tab_config_init(NULL);
-
+    load_latest_match_from_sd(false);
 #endif
 
     return;
@@ -2700,6 +2729,15 @@ void screen_debug_loop()
     }
 
 #ifdef SDCARD_ENABLED
+
+    // Boot-time reload of the latest saved match, deferred until the SD card
+    // is actually mounted (detection is asynchronous). Silent: a missing or
+    // empty matches.tsv is normal on first start.
+    if (match_boot_load_pending &&
+        Disk::getInstance().getCardState() == Disk::CardState::Present) {
+        match_boot_load_pending = false;
+        load_latest_match_from_sd(false);
+    }
 
     if (Save::save_data.sd_enabled) {
         if (!disk_info_displayed &&
