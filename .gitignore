@@ -22,3 +22,7 @@ venv*/
 
 managed_components/
 build-*/
+build/*
+# Added by code-review-graph
+.code-review-graph/
+.aider*

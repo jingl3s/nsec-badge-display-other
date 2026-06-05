@@ -8,5 +8,15 @@
   "C_Cpp.default.compilerPath": "/usr/bin/gcc",
   "chat.tools.terminal.autoApprove": {
     "true": true
-  }
+  },
+  "python-envs.pythonProjects": [
+    {
+      "path": "clemex-studio-application/server",
+      "venvPath": "clemex-studio-application/server/.venv",
+      "useUv": false,
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ],
+  "cmake.sourceDirectory": "/home/hugoc/Documents/git2/nsec-badge-display-other/esp32"
 }

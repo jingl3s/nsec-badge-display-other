@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/simulation/lvgl",
+                "${workspaceFolder}/simulation/lv_drivers",
+                "${workspaceFolder}/simulation/lv_nsec_badge"
+            ],
+            "defines": [
+                "SIMULATOR=1",
+                "SDCARD_ENABLED=1"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

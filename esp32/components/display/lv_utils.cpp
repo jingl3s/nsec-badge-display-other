@@ -14,7 +14,7 @@
 #include "lvgl_helpers.h"
 #endif
 
-lv_style_t style_box, style_no_top_margin;
+lv_style_t style_box, style_row_container, style_no_top_margin;
 
 lv_obj_t *create_switch_with_label(lv_obj_t *parent, const char *text,
                                    bool enabled)
@@ -107,6 +107,18 @@ void util_styles_init()
     lv_style_set_pad_right(&style_no_top_margin, LV_STATE_DEFAULT, 2);
 
     // lv_style_set_pad_inner(&style_no_top_margin, LV_STATE_DEFAULT, 2);
+
+    lv_style_init(&style_row_container);
+    lv_style_set_border_width(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_margin_top(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_margin_bottom(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_margin_left(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_margin_right(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_top(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_bottom(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_left(&style_row_container, LV_STATE_DEFAULT, 0);
+    lv_style_set_pad_right(&style_row_container, LV_STATE_DEFAULT, 0);
+
 
     return;
 }

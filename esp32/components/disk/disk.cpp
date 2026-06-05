@@ -302,7 +302,7 @@ void Disk::taskHandler()
             }
         }
 
-        Buzzer::getInstance().play(Buzzer::Sounds::Connection);
+        // Buzzer::getInstance().play(Buzzer::Sounds::Connection);
         _cardState = CardState::Present;
         break;
     case CardState::NotReadable:

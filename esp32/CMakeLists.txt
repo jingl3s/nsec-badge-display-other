@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(EXTRA_COMPONENT_DIRS "./extra-components/")
-# add_compile_definitions(SDCARD_ENABLED=0)
+add_compile_definitions(SDCARD_ENABLED)
 add_compile_definitions(LV_USE_USER_DATA=1)
 list(APPEND EXTRA_COMPONENT_DIRS extra-components/lvgl_esp32_drivers extra-components/lvgl_esp32_drivers/lvgl_touch extra-components/lvgl_esp32_drivers/lvgl_tft)
 

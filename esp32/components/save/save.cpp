@@ -27,7 +27,8 @@ SaveData Save::save_data = {
     .display_backlight = 255,
     .cup = 0,
     .cup_2 = 0,
-    .bip_enabled = true
+    .bip_enabled = true,
+    .sd_enabled = false
 };
 
 esp_err_t Save::write_save()
