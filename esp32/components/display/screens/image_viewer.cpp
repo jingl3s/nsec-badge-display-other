@@ -36,7 +36,7 @@ static const char *get_mount(void) {
 
 struct decode_ctx {
     FILE *fp;
-    uint16_t *pixels;
+    lv_color_t *pixels;
     int stride;
     int img_w;
     int img_h;
@@ -78,7 +78,7 @@ static bool is_supported(const char *path)
 #ifdef SIMULATOR
     return ext_matches(path, "bin", "bmp");
 #else
-    return ext_matches(path, "jpg", "jpeg");
+    return ext_matches(path, "jpg", "jpeg") || ext_matches(path, "bin", "bin");
 #endif
 }
 
@@ -93,12 +93,14 @@ static void free_images(void)
     current_index = -1;
 }
 
-static int scan_images(void)
+int scan_images(void)
 {
     free_images();
 
     char dir_path[64];
     snprintf(dir_path, sizeof(dir_path), "%s/%s", get_mount(), IMAGE_DIR);
+
+ESP_LOGE(TAG, "dir path: %s\n", dir_path);
 
     DIR *dir = opendir(dir_path);
     if (!dir) {
@@ -159,6 +161,7 @@ static int load_bin(const char *full_path)
     free_pixels();
 
     pixel_buffer = (uint8_t *)malloc(data_size);
+    ESP_LOGE(TAG, "BIN data_size: %d\n", data_size);
     if (!pixel_buffer) { fclose(fp); return -3; }
 
     if (fread(pixel_buffer, 1, data_size, fp) != data_size) {
@@ -231,6 +234,7 @@ static int load_bmp(const char *full_path)
     free_pixels();
 
     size_t buf_size = (size_t)w * abs_h * sizeof(lv_color_t);
+    ESP_LOGE(TAG, "BMP buf_size: %d\n", buf_size);
     pixel_buffer = (uint8_t *)malloc(buf_size);
     if (!pixel_buffer) { fclose(fp); return -4; }
 
@@ -282,7 +286,7 @@ static UINT tjpgd_in(JDEC *jd, BYTE *buf, UINT len)
 static UINT tjpgd_out(JDEC *jd, void *bitmap, JRECT *rect)
 {
     struct decode_ctx *ctx = (struct decode_ctx *)jd->device;
-    uint16_t *dst = ctx->pixels;
+    lv_color_t *dst = ctx->pixels;
     int stride = ctx->stride;
     BYTE *src = (BYTE *)bitmap;
 
@@ -291,11 +295,18 @@ static UINT tjpgd_out(JDEC *jd, void *bitmap, JRECT *rect)
             BYTE r = *src++;
             BYTE g = *src++;
             BYTE b = *src++;
-            dst[y * stride + x] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+            dst[y * stride + x] = lv_color_make(r, g, b);
         }
     }
     return 1;
 }
+
+/* TJpgDec work area — static to avoid blowing the LVGL task stack.
+ * Minimum is 3092 bytes; 8 KB gives headroom for complex Huffman tables. */
+static uint8_t s_jpeg_pool[8192];
+
+#define DISPLAY_W 320
+#define DISPLAY_H 160  /* 320x160x2 = 102400 bytes, fits in ~110KB heap */
 
 static int load_jpeg(const char *full_path)
 {
@@ -308,26 +319,68 @@ static int load_jpeg(const char *full_path)
     ctx.stride = 0;
 
     JDEC jd;
-    uint8_t pool[4096];
-    JRESULT res = jd_prepare(&jd, tjpgd_in, pool, sizeof(pool), &ctx);
-    if (res != JDR_OK) { fclose(fp); return -2; }
+    JRESULT res = jd_prepare(&jd, tjpgd_in, s_jpeg_pool, sizeof(s_jpeg_pool), &ctx);
+    if (res != JDR_OK) {
+        const char *reason = (res == 6) ? "format error" :
+                             (res == 7) ? "progressive JPEG not supported (use baseline)" :
+                             (res == 8) ? "unsupported sampling factor" :
+                             (res == 3) ? "pool too small" : "unknown";
+        ESP_LOGE(TAG, "jd_prepare failed: %d (%s)\n", res, reason);
+        fclose(fp);
+        return -2;
+    }
 
-    int out_w = jd.width;
-    int out_h = jd.height;
+    /* Choose scale so decoded pixels fit in available heap and display width.
+     * Leave 4 KB margin; DISPLAY_H is a soft target only — if the image fits
+     * in memory at native height, skip the scale even if height > DISPLAY_H. */
+    size_t avail_bytes = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+    size_t max_pixels  = avail_bytes / sizeof(lv_color_t);
 
-    free_pixels();
+    uint8_t scale = 0;
+    while (scale < 3) {
+        size_t out_w = (size_t)(jd.width  >> scale);
+        size_t out_h = (size_t)(jd.height >> scale);
+        if (out_w <= DISPLAY_W && out_w * out_h <= max_pixels)
+            break;
+        scale++;
+    }
 
-    size_t buf_size = (size_t)out_w * out_h * 2;
+    int out_w = jd.width >> scale;
+    int out_h = jd.height >> scale;
+    ESP_LOGE(TAG, "JPEG %dx%d scale 1/%d → %dx%d\n",
+             jd.width, jd.height, (1 << scale), out_w, out_h);
+
+    /* Guard against corrupt headers reporting absurd dimensions */
+    if (out_w <= 0 || out_h <= 0 || out_w > 2048 || out_h > 2048) {
+        fclose(fp);
+        return -5;
+    }
+
+    size_t buf_size = (size_t)out_w * out_h * sizeof(lv_color_t);
+
+    // size_t largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+    // ESP_LOGE(TAG, "Heap largest free block: %u bytes, need: %u bytes\n",
+    //          (unsigned)largest, (unsigned)buf_size);
+
     pixel_buffer = (uint8_t *)malloc(buf_size);
-    if (!pixel_buffer) { fclose(fp); return -3; }
+    if (!pixel_buffer) {
+        ESP_LOGE(TAG, "malloc %u bytes failed\n", (unsigned)buf_size);
+        fclose(fp);
+        return -3;
+    }
+    ESP_LOGE(TAG, "malloc %u bytes OK\n", (unsigned)buf_size);
 
-    ctx.pixels = (uint16_t *)pixel_buffer;
+    ctx.pixels = (lv_color_t *)pixel_buffer;
     ctx.stride = out_w;
 
-    res = jd_decomp(&jd, tjpgd_out, 0);
+    res = jd_decomp(&jd, tjpgd_out, scale);
     fclose(fp);
 
-    if (res != JDR_OK) { free_pixels(); return -4; }
+    if (res != JDR_OK) {
+        ESP_LOGE(TAG, "jd_decomp failed: %d\n", res);
+        free_pixels();
+        return -4;
+    }
 
     img_dsc.header.always_zero = 0;
     img_dsc.header.w = out_w;
@@ -351,7 +404,7 @@ static int decode_image(const char *full_path)
 #endif
 }
 
-static void show_current_image(void)
+void show_current_image(void)
 {
     if (current_index < 0 || current_index >= image_count) {
         lv_obj_set_hidden(img_obj, true);
@@ -364,6 +417,12 @@ static void show_current_image(void)
     char full_path[128];
     snprintf(full_path, sizeof(full_path), "%s/%s/%s",
              get_mount(), IMAGE_DIR, image_files[current_index]);
+    ESP_LOGE(TAG, "Displaying image: %s\n", full_path);
+
+    /* Detach LVGL from the old buffer before freeing it */
+    lv_obj_set_hidden(img_obj, true);
+    lv_img_set_src(img_obj, NULL);
+    free_pixels();
 
     int err = decode_image(full_path);
     if (err != 0) {
@@ -376,20 +435,21 @@ static void show_current_image(void)
     }
 
     lv_img_set_src(img_obj, &img_dsc);
+    lv_obj_align(img_obj, lv_obj_get_parent(img_obj), LV_ALIGN_IN_TOP_MID, 0, 0);
     lv_obj_set_hidden(img_obj, false);
     lv_obj_set_hidden(label_status, true);
 
     lv_label_set_text_fmt(label_info, "%d/%d - %s", current_index + 1,
                           image_count, image_files[current_index]);
     lv_obj_set_hidden(label_info, false);
-    ESP_LOGE(TAG, "Displayed image: %s\n", full_path);
 }
 
 static void advance_to_next(void)
+/*Affiche l'image et prepare la suivante*/
 {
     if (image_count == 0) return;
-    current_index = (current_index + 1) % image_count;
     show_current_image();
+    current_index = (current_index + 1) % image_count;
 }
 
 static void img_click_handler(lv_obj_t *obj, lv_event_t event)
@@ -405,16 +465,13 @@ lv_obj_t *tab_images_init_real(lv_obj_t *tab_view, const char *tab_name)
     lv_page_set_scrl_layout(parent, LV_LAYOUT_OFF);
     lv_page_set_scrollbar_mode(parent, LV_SCRLBAR_MODE_OFF);
 
-    // lv_obj_set_style_local_bg_color(parent, LV_PAGE_PART_BG, LV_STATE_DEFAULT,
-    //                                 LV_COLOR_BLACK);
-    // lv_obj_set_style_local_text_color(parent, LV_LABEL_PART_MAIN,
-    //                                   LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    lv_obj_set_style_local_bg_color(parent, LV_PAGE_PART_BG, LV_STATE_DEFAULT,
+                                    LV_COLOR_BLACK);
+    lv_obj_set_style_local_text_color(parent, LV_LABEL_PART_MAIN,
+                                      LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
     img_obj = lv_img_create(parent, NULL);
     lv_obj_set_event_cb(img_obj, img_click_handler);
-
-    lv_obj_set_pos(img_obj, 0, 0);
-    lv_obj_set_size(img_obj, 320, 200);
     lv_obj_set_hidden(img_obj, true);
 
     label_info = lv_label_create(parent, NULL);
@@ -429,26 +486,33 @@ lv_obj_t *tab_images_init_real(lv_obj_t *tab_view, const char *tab_name)
     lv_obj_set_hidden(label_info, true);
 
     label_status = lv_label_create(parent, NULL);
-    lv_label_set_text(label_status, "Aucune carte SD detectee");
+    lv_label_set_text(label_status, "Aucune image");
     lv_obj_set_style_local_text_color(label_status, LV_LABEL_PART_MAIN,
-                                      LV_STATE_DEFAULT, LV_COLOR_WHITE);
+                                      LV_STATE_DEFAULT, LV_COLOR_BLACK);
     lv_obj_align(label_status, NULL, LV_ALIGN_CENTER, 0, 0);
 
     lv_obj_t *cup_button_load = lv_btn_create(parent, NULL);
-    lv_obj_set_width(cup_button_load, 20);
+    lv_obj_set_width(cup_button_load, 50);
+    lv_obj_set_height(cup_button_load, 50);
+    lv_obj_set_pos(cup_button_load, 270, 150);
     lv_obj_set_style_local_radius(cup_button_load, LV_OBJ_PART_MAIN,
                                   LV_STATE_DEFAULT, 0);
-    lv_obj_set_height(cup_button_load, 20);
+    lv_obj_set_style_local_border_width(cup_button_load, LV_OBJ_PART_MAIN,
+                                        LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_border_width(cup_button_load, LV_OBJ_PART_MAIN,
+                                        LV_STATE_PRESSED, 0);
+    lv_obj_set_style_local_border_width(cup_button_load, LV_OBJ_PART_MAIN,
+                                        LV_STATE_FOCUSED, 0);
+    lv_obj_set_style_local_bg_opa(cup_button_load, LV_OBJ_PART_MAIN,
+                                  LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_obj_set_style_local_bg_opa(cup_button_load, LV_OBJ_PART_MAIN,
+                                  LV_STATE_PRESSED, LV_OPA_TRANSP);
     lv_obj_set_event_cb(cup_button_load, img_click_handler);
-
     lv_obj_t *cup_label_load = lv_label_create(cup_button_load, NULL);
     lv_label_set_text(cup_label_load, ">");
-    // lv_label_set_align(cup_label_load, LV_LABEL_ALIGN_CENTER);
-    // lv_obj_align(cup_label_load, NULL, LV_ALIGN_CENTER, 0, 0);
 
-
+#ifdef SIMULATOR
     scan_images();
-    show_current_image();
-
+#endif
     return parent;
 }

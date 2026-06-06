@@ -215,15 +215,19 @@ Les images sont chargées depuis `simulation/images/` (simulateur) ou la carte S
 **BMP 24-bit redimensionné à la zone d'affichage (320×200) :**
 
 ```bash
-magick images/ch.jpg -resize 320x200 BMP3:simulation/images/ch.bmp
+magick images/source.jpg -resize 320x200 BMP3:simulation/images/source.bmp
 ```
 
 `BMP3:` force le header standard 54 octets (sans extension V4/V5) requis par le décodeur.
 
-**BMP 8-bit indexé (4× moins de mémoire — nécessite support code) :**
+Resize
 
 ```bash
-magick images/ch.jpg -resize 320x200 -colors 256 -type Palette BMP3:simulation/images/ch.bmp
+-resize 256x160!
+```
+
+```bash
+convert source.bmp -sampling-factor 4:2:0 -strip -quality 85 source.jpg
 ```
 
 ### Empreinte mémoire comparée (image 320×200)
@@ -296,3 +300,4 @@ Résultat : fichier RGB565 16-bit, compatible simulateur (converti automatiqueme
 - Marges et padding <https://docs.lvgl.io/8.2/overview/coords.html?highlight=margin>
 - Luminosité <https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino>
 - Demos <https://github.com/lvgl/lv_demos>
+- Examples d'utilisation CYD <https://randomnerdtutorials.com/esp32-cyd-lvgl-display-image/>
