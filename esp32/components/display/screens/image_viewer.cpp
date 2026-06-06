@@ -7,12 +7,16 @@
 
 #include "lv_conf.h"
 #include "lvgl/lvgl.h"
+#include "image_viewer.h"
 
 #ifdef SIMULATOR
 #include "lv_utils.h"
 
 #define IMAGE_DIR "images"
 static const char *mount_point = ".";
+
+extern const char *TAG;
+#define ESP_LOGE(param, ...) printf(__VA_ARGS__);
 
 static const char *get_mount(void) { return mount_point; }
 
@@ -21,6 +25,7 @@ static const char *get_mount(void) { return mount_point; }
 #include "disk.h"
 #include "lv_utils.h"
 
+static const char *TAG = "image_viewer";
 #define IMAGE_DIR "images"
 static const char *get_mount(void) {
     return Disk::getInstance().getMountPoint();
@@ -71,7 +76,7 @@ static bool ext_matches(const char *path, const char *ext1, const char *ext2)
 static bool is_supported(const char *path)
 {
 #ifdef SIMULATOR
-    return ext_matches(path, "bmp", "bmp");
+    return ext_matches(path, "bin", "bmp");
 #else
     return ext_matches(path, "jpg", "jpeg");
 #endif
@@ -124,6 +129,7 @@ static int scan_images(void)
     }
 
     current_index = image_count > 0 ? 0 : -1;
+    ESP_LOGE(TAG, "Found %d images in %s/%s\n", image_count, get_mount(), IMAGE_DIR);
     return image_count;
 }
 
@@ -137,7 +143,66 @@ static void free_pixels(void)
     img_dsc.header.h = 0;
 }
 
+static int load_bin(const char *full_path)
+{
+    FILE *fp = fopen(full_path, "rb");
+    if (!fp) return -1;
+
+    lv_img_header_t hdr;
+    if (fread(&hdr, sizeof(hdr), 1, fp) != 1) { fclose(fp); return -2; }
+
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    fseek(fp, sizeof(hdr), SEEK_SET);
+
+    size_t data_size = (size_t)(file_size - (long)sizeof(hdr));
+    free_pixels();
+
+    pixel_buffer = (uint8_t *)malloc(data_size);
+    if (!pixel_buffer) { fclose(fp); return -3; }
+
+    if (fread(pixel_buffer, 1, data_size, fp) != data_size) {
+        free_pixels();
+        fclose(fp);
+        return -4;
+    }
+    fclose(fp);
+
+#if LV_COLOR_DEPTH == 32
+    /* If bin was generated for 16-bit LVGL, convert RGB565 → lv_color_t (32-bit) */
+    size_t expected_16 = (size_t)hdr.w * hdr.h * 2;
+    if (data_size == expected_16 && hdr.cf == LV_IMG_CF_TRUE_COLOR) {
+        size_t expected_32 = (size_t)hdr.w * hdr.h * sizeof(lv_color_t);
+        uint8_t *dst32 = (uint8_t *)malloc(expected_32);
+        if (!dst32) { free_pixels(); return -5; }
+
+        uint16_t *in = (uint16_t *)pixel_buffer;
+        lv_color_t *out = (lv_color_t *)dst32;
+        size_t npix = (size_t)hdr.w * hdr.h;
+        for (size_t i = 0; i < npix; i++) {
+            uint16_t px = in[i];
+            uint8_t r5 = (px >> 11) & 0x1F;
+            uint8_t g6 = (px >> 5)  & 0x3F;
+            uint8_t b5 =  px        & 0x1F;
+            out[i] = lv_color_make((r5 << 3) | (r5 >> 2),
+                                   (g6 << 2) | (g6 >> 4),
+                                   (b5 << 3) | (b5 >> 2));
+        }
+        free(pixel_buffer);
+        pixel_buffer = dst32;
+        data_size = expected_32;
+    }
+#endif
+
+    img_dsc.header = hdr;
+    img_dsc.data_size = data_size;
+    img_dsc.data = pixel_buffer;
+
+    return 0;
+}
+
 #ifdef SIMULATOR
+
 
 static int load_bmp(const char *full_path)
 {
@@ -165,11 +230,11 @@ static int load_bmp(const char *full_path)
 
     free_pixels();
 
-    size_t buf_size = (size_t)w * abs_h * 2;
+    size_t buf_size = (size_t)w * abs_h * sizeof(lv_color_t);
     pixel_buffer = (uint8_t *)malloc(buf_size);
     if (!pixel_buffer) { fclose(fp); return -4; }
 
-    uint16_t *dst = (uint16_t *)pixel_buffer;
+    lv_color_t *dst = (lv_color_t *)pixel_buffer;
     int row_size = ((w * 24 + 31) / 32) * 4;
     uint8_t *row = (uint8_t *)malloc(row_size);
     if (!row) { free_pixels(); fclose(fp); return -4; }
@@ -183,7 +248,7 @@ static int load_bmp(const char *full_path)
             uint8_t b = row[x * 3 + 0];
             uint8_t g = row[x * 3 + 1];
             uint8_t r = row[x * 3 + 2];
-            dst[y * w + x] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+            dst[y * w + x] = lv_color_make(r, g, b);
         }
     }
 
@@ -278,6 +343,7 @@ static int load_jpeg(const char *full_path)
 
 static int decode_image(const char *full_path)
 {
+    if (ext_matches(full_path, "bin", "bin")) return load_bin(full_path);
 #ifdef SIMULATOR
     return load_bmp(full_path);
 #else
@@ -316,6 +382,7 @@ static void show_current_image(void)
     lv_label_set_text_fmt(label_info, "%d/%d - %s", current_index + 1,
                           image_count, image_files[current_index]);
     lv_obj_set_hidden(label_info, false);
+    ESP_LOGE(TAG, "Displayed image: %s\n", full_path);
 }
 
 static void advance_to_next(void)
@@ -338,14 +405,12 @@ lv_obj_t *tab_images_init_real(lv_obj_t *tab_view, const char *tab_name)
     lv_page_set_scrl_layout(parent, LV_LAYOUT_OFF);
     lv_page_set_scrollbar_mode(parent, LV_SCRLBAR_MODE_OFF);
 
-    lv_obj_set_style_local_bg_color(parent, LV_PAGE_PART_BG, LV_STATE_DEFAULT,
-                                    LV_COLOR_BLACK);
-    lv_obj_set_style_local_text_color(parent, LV_LABEL_PART_MAIN,
-                                      LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    // lv_obj_set_style_local_bg_color(parent, LV_PAGE_PART_BG, LV_STATE_DEFAULT,
+    //                                 LV_COLOR_BLACK);
+    // lv_obj_set_style_local_text_color(parent, LV_LABEL_PART_MAIN,
+    //                                   LV_STATE_DEFAULT, LV_COLOR_WHITE);
 
     img_obj = lv_img_create(parent, NULL);
-    lv_obj_set_style_local_image_recolor_opa(img_obj, LV_IMG_PART_MAIN,
-                                             LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_obj_set_event_cb(img_obj, img_click_handler);
 
     lv_obj_set_pos(img_obj, 0, 0);
@@ -368,6 +433,19 @@ lv_obj_t *tab_images_init_real(lv_obj_t *tab_view, const char *tab_name)
     lv_obj_set_style_local_text_color(label_status, LV_LABEL_PART_MAIN,
                                       LV_STATE_DEFAULT, LV_COLOR_WHITE);
     lv_obj_align(label_status, NULL, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_t *cup_button_load = lv_btn_create(parent, NULL);
+    lv_obj_set_width(cup_button_load, 20);
+    lv_obj_set_style_local_radius(cup_button_load, LV_OBJ_PART_MAIN,
+                                  LV_STATE_DEFAULT, 0);
+    lv_obj_set_height(cup_button_load, 20);
+    lv_obj_set_event_cb(cup_button_load, img_click_handler);
+
+    lv_obj_t *cup_label_load = lv_label_create(cup_button_load, NULL);
+    lv_label_set_text(cup_label_load, ">");
+    // lv_label_set_align(cup_label_load, LV_LABEL_ALIGN_CENTER);
+    // lv_obj_align(cup_label_load, NULL, LV_ALIGN_CENTER, 0, 0);
+
 
     scan_images();
     show_current_image();

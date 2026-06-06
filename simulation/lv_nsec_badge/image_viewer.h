@@ -1,1 +1,1 @@
-/home/hugoc/Documents/git/worktree/nsec-badge-display-other/feature/image-viewer/simulation/../esp32/components/display/screens/image_viewer.h
+/home/hugoc/Documents/git2/nsec-badge-display-other/esp32/components/display/screens/image_viewer.h

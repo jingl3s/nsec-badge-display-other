@@ -199,6 +199,94 @@ If, for some reason, you want to flash a board with secure boot for the first ti
 ./esp32/secure_flash.sh /dev/ttyUSB0
 ```
 
+## Conversion d'images pour l'onglet Images
+
+Les images sont chargées depuis `simulation/images/` (simulateur) ou la carte SD (ESP32).
+
+### Formats supportés
+
+| Cible | Format | Extension |
+| --- | --- | --- |
+| Simulateur | BMP 24-bit non-compressé ou LVGL `.bin` | `.bmp`, `.bin` |
+| ESP32 | JPEG | `.jpg`, `.jpeg` |
+
+### Commandes de conversion (ImageMagick v7)
+
+**BMP 24-bit redimensionné à la zone d'affichage (320×200) :**
+
+```bash
+magick images/ch.jpg -resize 320x200 BMP3:simulation/images/ch.bmp
+```
+
+`BMP3:` force le header standard 54 octets (sans extension V4/V5) requis par le décodeur.
+
+**BMP 8-bit indexé (4× moins de mémoire — nécessite support code) :**
+
+```bash
+magick images/ch.jpg -resize 320x200 -colors 256 -type Palette BMP3:simulation/images/ch.bmp
+```
+
+### Empreinte mémoire comparée (image 320×200)
+
+| Format | Bytes/pixel | Total RAM |
+| --- | --- | --- |
+| BMP 24-bit → `lv_color_t` 32-bit (simulateur) | 4 | ~256 KB |
+| BMP 24-bit → `lv_color_t` 16-bit (ESP32) | 2 | ~128 KB |
+| BMP 8-bit indexé (non implémenté) | 1 | ~64 KB |
+
+### Fichier LVGL `.bin`
+
+Le chargeur détecte automatiquement les `.bin` 16-bit RGB565 et les convertit en 32-bit si le simulateur tourne en `LV_COLOR_DEPTH=32`. Il n'est donc pas nécessaire de générer deux fichiers différents.
+
+#### Structure du format binaire LVGL
+
+```text
+[4 octets header] [pixels bruts]
+
+Header (uint32_t little-endian) :
+  bits  [4:0]  = color format (4 = CF_TRUE_COLOR)
+  bits  [7:5]  = always_zero
+  bits  [9:8]  = reserved
+  bits [20:10] = largeur (max 2047)
+  bits [31:21] = hauteur (max 2047)
+
+Pixels : RGB565 little-endian, ligne par ligne, de haut en bas
+```
+
+#### Méthode 1 — Convertisseur en ligne LVGL
+
+Utiliser [lvgl.io/tools/imageconverter](https://lvgl.io/tools/imageconverter) avec les paramètres :
+
+- **Color format** : `True color`
+- **Output format** : `Binary RGB565`
+- Télécharger le fichier `.bin` résultant dans `simulation/images/`
+
+#### Méthode 2 — Script Python (recommandée, sans dépendances web)
+
+Nécessite `Pillow` (`pip install Pillow`).
+
+```bash
+python3 - <<'EOF' images/ch.jpg 320 200 simulation/images/ch.bin
+import sys
+from PIL import Image
+import struct
+
+src, w, h, dst = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4]
+img = Image.open(src).resize((w, h)).convert("RGB")
+w, h = img.size
+header = (4 & 0x1F) | ((w & 0x7FF) << 10) | ((h & 0x7FF) << 21)
+with open(dst, "wb") as f:
+    f.write(struct.pack("<I", header))
+    for y in range(h):
+        for x in range(w):
+            r, g, b = img.getpixel((x, y))
+            f.write(struct.pack("<H", ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)))
+print(f"Créé {dst} ({w}x{h}, {w*h*2+4} octets)")
+EOF
+```
+
+Résultat : fichier RGB565 16-bit, compatible simulateur (converti automatiquement en 32-bit au chargement) et ESP32.
+
 ## Liens utils
 
 - LVGL

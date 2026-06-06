@@ -17,6 +17,7 @@ CFLAGS ?= -O0 -g -I$(LVGL_DIR)/ $(WARNINGS) -D LV_USE_USER_DATA_FREE=0 -D USE_DR
 LDFLAGS ?= -lSDL2 -lm -g
 BIN = demo
 
+ESP32_DISPLAY_DIR := $(LVGL_DIR)/../esp32/components/display
 
 #Collect the files to compile
 MAINSRC = ./main.c
@@ -49,6 +50,20 @@ all: default
 default: $(AOBJS) $(COBJS) $(MAINOBJ)
 	@$(CC) -o $(BIN) $(MAINOBJ) $(AOBJS) $(COBJS) $(LDFLAGS)
 
-clean: 
+clean:
 	rm -f $(BIN) $(AOBJS) $(COBJS) $(MAINOBJ)
+
+# Recreate all nsec badge symlinks before any compilation starts.
+# Uses ln -sf to overwrite broken or stale symlinks from old worktrees.
+.PHONY: symlinks
+symlinks:
+	@ln -sf $(abspath $(ESP32_DISPLAY_DIR)/screens/debug.cpp) lv_nsec_badge/debug.c
+	@ln -sf $(abspath $(ESP32_DISPLAY_DIR)/lv_utils.cpp) lv_nsec_badge/lv_utils.c
+	@ln -sf $(abspath $(ESP32_DISPLAY_DIR)/screens/score_teams.c) lv_nsec_badge/score_teams.c
+	@ln -sf $(abspath $(ESP32_DISPLAY_DIR)/screens/score_teams.h) lv_nsec_badge/score_teams.h
+	@ln -sf $(abspath $(ESP32_DISPLAY_DIR)/screens/image_viewer.cpp) lv_nsec_badge/image_viewer.c
+	@ln -sf $(abspath $(ESP32_DISPLAY_DIR)/screens/image_viewer.h) lv_nsec_badge/image_viewer.h
+
+# Order-only prerequisite: symlinks must exist before compiling any object file.
+$(COBJS) $(MAINOBJ): | symlinks
 

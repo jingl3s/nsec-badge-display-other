@@ -145,12 +145,11 @@ debug_tabs_t debug_tabs[debug_tab::count] = {
     {.name = TITRE_TAB_CUP, .init = tab_cup_init},
     {.name = TITRE_TAB_CARD, .init = tab_card_init},
     {.name = TITRE_TAB_CHRONO, .init = tab_chrono_init},
+    #ifdef SDCARD_ENABLED
+        {.name = TITRE_TAB_IMAGES, .init = tab_images_init},
+    #endif
     {.name = TITRE_TAB_SOUNDS, .init = tab_sounds_init},
     {.name = TITRE_TAB_CONFIG, .init = tab_config_init},
-#ifdef SDCARD_ENABLED
-    {.name = "---", .init = NULL},
-    {.name = TITRE_TAB_IMAGES, .init = tab_images_init},
-#endif
 };
 
 static const char *FX_mode_names[] = {
@@ -2693,9 +2692,9 @@ void screen_debug_init()
     tab_cup_init(NULL);
     tab_card_init(NULL);
     tab_chrono_init(NULL);
+    tab_images_init_real(tab_view, TITRE_TAB_IMAGES);
     tab_sounds_init(NULL);
     tab_config_init(NULL);
-    tab_images_init_real(tab_view, TITRE_TAB_IMAGES);
     load_latest_match_from_sd(false);
 #endif
 

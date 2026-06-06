@@ -26,3 +26,5 @@ build/*
 # Added by code-review-graph
 .code-review-graph/
 .aider*
+simulation/lv_nsec_badge/image_viewer.c
+simulation/lv_nsec_badge/image_viewer.h
