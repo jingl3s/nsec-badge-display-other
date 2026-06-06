@@ -226,6 +226,13 @@ magick images/ch.jpg -resize 320x200 BMP3:simulation/images/ch.bmp
 magick images/ch.jpg -resize 320x200 -colors 256 -type Palette BMP3:simulation/images/ch.bmp
 ```
 
+```bash
+convert ch.bmp -resize 256x160! -sampling-factor 4:2:0 -strip -quality 85 ch.jpg
+convert train.bmp -resize 256x160! -sampling-factor 4:2:0 -strip -quality 85 train.jpg
+convert fifa.bmp -sampling-factor 4:2:0 -strip -quality 85 fifa.jpg
+identify ch.jpg train.jpg fifa.jpg
+```
+
 ### Empreinte mémoire comparée (image 320×200)
 
 | Format | Bytes/pixel | Total RAM |
@@ -296,3 +303,4 @@ Résultat : fichier RGB565 16-bit, compatible simulateur (converti automatiqueme
 - Marges et padding <https://docs.lvgl.io/8.2/overview/coords.html?highlight=margin>
 - Luminosité <https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino>
 - Demos <https://github.com/lvgl/lv_demos>
+- Examples d'utilisation CYD <https://randomnerdtutorials.com/esp32-cyd-lvgl-display-image/>

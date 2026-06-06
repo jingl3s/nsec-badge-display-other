@@ -126,12 +126,12 @@ static void chrono_reset_event_handler(lv_obj_t *obj, lv_event_t e)
     }
 }
 
-static const char *TITRE_TAB_SCORE = "SCORE";
-static const char *TITRE_TAB_CUP = "Co.";
-static const char *TITRE_TAB_CARD = "Cart.";
+static const char *TITRE_TAB_SCORE = "SCR";
+static const char *TITRE_TAB_CUP = "CPE";
+static const char *TITRE_TAB_CARD = "CRT";
 static const char *TITRE_TAB_CONFIG = "CFG";
-static const char *TITRE_TAB_SOUNDS = "SO.";
-static const char *TITRE_TAB_CHRONO = "Ch.";
+static const char *TITRE_TAB_SOUNDS = "SON";
+static const char *TITRE_TAB_CHRONO = "CHR";
 static const char *TITRE_TAB_IMAGES = "IMG";
 
 #ifndef SIMULATOR
@@ -2090,7 +2090,7 @@ static void card_textarea_event_cb(lv_obj_t *ta, lv_event_t e)
     }
 }
 
-// POSITION TWEAK as simulator and RSP32 do not display in same way with
+// POSITION TWEAK as simulator and ESP32 do not display in same way with
 // layout_off
 #define CARD_OBJECT_WIDTH_HALF_SCREEN 160
 #define CARD_OBJECT_SIZE_WIDTH_BIG 159
@@ -2663,6 +2663,10 @@ void screen_debug_init()
                                    LV_STATE_DEFAULT, 10);
     lv_obj_set_style_local_pad_bottom(tab_view, LV_TABVIEW_PART_TAB_BTN,
                                       LV_STATE_DEFAULT, 10);
+    lv_obj_set_style_local_pad_left(tab_view, LV_TABVIEW_PART_TAB_BTN,
+                                    LV_STATE_DEFAULT, 1);
+    lv_obj_set_style_local_pad_right(tab_view, LV_TABVIEW_PART_TAB_BTN,
+                                     LV_STATE_DEFAULT, 1);
     lv_obj_set_style_local_margin_top(tab_view, LV_TABVIEW_PART_TAB_BTN,
                                       LV_STATE_DEFAULT, 0);
     lv_obj_set_style_local_margin_bottom(tab_view, LV_TABVIEW_PART_TAB_BTN,
@@ -2754,6 +2758,7 @@ void screen_debug_loop()
         Disk::getInstance().getCardState() == Disk::CardState::Present) {
         match_boot_load_pending = false;
         load_latest_match_from_sd(false);
+        scan_images();
     }
 
     if (Save::save_data.sd_enabled) {
