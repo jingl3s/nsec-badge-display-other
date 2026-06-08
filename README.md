@@ -215,15 +215,19 @@ Les images sont chargées depuis `simulation/images/` (simulateur) ou la carte S
 **BMP 24-bit redimensionné à la zone d'affichage (320×200) :**
 
 ```bash
-magick images/ch.jpg -resize 320x200 BMP3:simulation/images/ch.bmp
+magick images/source.jpg -resize 320x200 BMP3:simulation/images/source.bmp
 ```
 
 `BMP3:` force le header standard 54 octets (sans extension V4/V5) requis par le décodeur.
 
-**BMP 8-bit indexé (4× moins de mémoire — nécessite support code) :**
+Resize
 
 ```bash
-magick images/ch.jpg -resize 320x200 -colors 256 -type Palette BMP3:simulation/images/ch.bmp
+-resize 256x160!
+```
+
+```bash
+convert source.bmp -sampling-factor 4:2:0 -strip -quality 85 source.jpg
 ```
 
 ```bash
