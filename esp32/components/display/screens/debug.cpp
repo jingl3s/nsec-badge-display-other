@@ -2600,9 +2600,9 @@ static lv_obj_t *tab_chrono_init(debug_tabs_t *tab)
         const char *name;
         int seconds;
     } time_btns[] = {
-        {"+10s", 10},
-        {"+30s", 30},
         {"+1m", 60},
+        {"+5m", 300},
+        {"+10m", 600},
     };
 
     for (int i = 0; i < 3; i++) {
