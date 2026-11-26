@@ -1041,11 +1041,15 @@ static void score_fin(lv_obj_t *btn, lv_event_t event)
     switch (event) {
     case LV_EVENT_CLICKED: {
 #ifndef SIMULATOR
-        Buzzer::getInstance().buzz(2500, 200);
-        vTaskDelay(pdMS_TO_TICKS(300));
-        Buzzer::getInstance().buzz(2500, 200);
-        vTaskDelay(pdMS_TO_TICKS(300));
-        Buzzer::getInstance().buzz(2500, 200);
+        Buzzer::getInstance().buzz(2500, 150);
+        vTaskDelay(pdMS_TO_TICKS(180));
+        Buzzer::getInstance().buzz(2500, 150);
+        vTaskDelay(pdMS_TO_TICKS(180));
+        Buzzer::getInstance().buzz(2500, 400);
+        vTaskDelay(pdMS_TO_TICKS(60));
+        Buzzer::getInstance().buzz(2700, 250);
+        vTaskDelay(pdMS_TO_TICKS(60));
+        Buzzer::getInstance().buzz(2400, 300);
 #ifdef SDCARD_ENABLED
         save_match_to_sd();
 #endif
