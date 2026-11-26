@@ -15,7 +15,8 @@ typedef struct _tournament {
 
 const char *world_cup_teams[] = {
     "ALBANIE",  "ALLEMAGNE", "ANGLETERRE", "ARABIE SAOUDITE", "ARGENTINE",
-    "BELGIQUE", "BRESIL",    "CANADA",     "CHINE",           "COSTA RICA",
+    "BELGIQUE", "BOSNIE-HERZEGOVINE", "BRESIL",    "CANADA",     "CHINE",           "COSTA RICA",
+    "EGYPTE",
     "CROATIE",  "ESPAGNE",   "FRANCE",     "IRLANDE",         "ITALIE",
     "JAPON",    "PAYS-BAS",  "PORTUGAL",   "ROUMANIE",        "SUISSE",
     "TUNISIE"};
@@ -292,11 +293,120 @@ const tournament_t personal_cup = {
     .teams = personal_cup_teams,
     .number_teams = sizeof(personal_cup_teams) / sizeof(personal_cup_teams[0])};
 
+const char *ao_ashi_cup_teams[] = {
+    "Aomori Seiran",
+    "Esperion B",
+    "Funabashi Gakuin",
+    "Kanto Integrated",
+    "Seikyo",
+    "Tokyo City Esperion",
+    "Tokyo Musashino",
+    "Tokyo Shurin",
+    "Tokyo Vans",
+};
+
+const tournament_t ao_ashi_cup = {.title = "Ao Ashi",
+                                  .teams = ao_ashi_cup_teams,
+                                  .number_teams = sizeof(ao_ashi_cup_teams) /
+                                                  sizeof(ao_ashi_cup_teams[0])};
+
+// J1 League 2026
+const char *j_league_cup_teams[] = {
+    "Avispa Fukuoka",    "Cerezo Osaka",         "Fagiano Okayama",
+    "FC Tokyo",          "Gamba Osaka",          "JEF United Chiba",
+    "Kashima Antlers",   "Kashiwa Reysol",       "Kawasaki Frontale",
+    "Kyoto Sanga",       "Machida Zelvia",       "Mito HollyHock",
+    "Nagoya Grampus",    "Sanfrecce Hiroshima",  "Shimizu S-Pulse",
+    "Tokyo Verdy",       "Urawa Red Diamonds",   "V-Varen Nagasaki",
+    "Vissel Kobe",       "Yokohama F. Marinos",
+};
+
+const tournament_t j_league_cup = {.title = "J-League",
+                                   .teams = j_league_cup_teams,
+                                   .number_teams =
+                                       sizeof(j_league_cup_teams) /
+                                       sizeof(j_league_cup_teams[0])};
+
+// Ligue 1 2026-2027
+const char *ligue_1_cup_teams[] = {
+    "Angers SCO",       "AJ Auxerre",        "Stade Brestois",
+    "Le Havre AC",      "Le Mans FC",        "RC Lens",
+    "LOSC Lille",       "FC Lorient",        "Olympique Lyonnais",
+    "Olympique Marseille", "AS Monaco",      "OGC Nice",
+    "Paris FC",         "Paris Saint-Germain", "Stade Rennais",
+    "RC Strasbourg",    "Toulouse FC",       "ESTAC Troyes",
+};
+
+const tournament_t ligue_1_cup = {.title = "Ligue 1",
+                                  .teams = ligue_1_cup_teams,
+                                  .number_teams = sizeof(ligue_1_cup_teams) /
+                                                  sizeof(ligue_1_cup_teams[0])};
+
+// UCI WorldTeams 2026 (road cycling). ASCII hyphens only: the built-in LVGL
+// fonts have no glyph for the en dash used in the official names.
+const char *cycling_road_cup_teams[] = {
+    "Alpecin-Premier Tech",
+    "Decathlon CMA CGM",
+    "EF Education-EasyPost",
+    "Groupama-FDJ United",
+    "Lidl-Trek",
+    "Lotto-Intermarche",
+    "Movistar Team",
+    "Netcompany INEOS",
+    "NSN Cycling Team",
+    "Red Bull-Bora-Hansgrohe",
+    "Soudal-Quick-Step",
+    "Team Bahrain Victorious",
+    "Team Jayco-AlUla",
+    "Team Picnic-PostNL",
+    "UAE Team Emirates XRG",
+    "Uno-X Mobility",
+    "Visma-Lease a Bike",
+    "XDS Astana Team",
+};
+
+const tournament_t cycling_road_cup = {
+    .title = "Velo route",
+    .teams = cycling_road_cup_teams,
+    .number_teams =
+        sizeof(cycling_road_cup_teams) / sizeof(cycling_road_cup_teams[0])};
+
+// Pro road cyclists, written without diacritics for the built-in LVGL fonts.
+const char *cyclists_cup_teams[] = {
+    "Adam Yates",         "Arnaud De Lie",       "Ben Healy",
+    "Ben O'Connor",       "Biniam Girmay",       "Carlos Rodriguez",
+    "Christophe Laporte", "David Gaudu",         "Dylan Groenewegen",
+    "Egan Bernal",        "Enric Mas",           "Felix Gall",
+    "Filippo Ganna",      "Florian Lipowitz",    "Giulio Ciccone",
+    "Isaac del Toro",     "Jai Hindley",         "Jasper Philipsen",
+    "Joao Almeida",       "Jonas Vingegaard",    "Jonathan Milan",
+    "Juan Ayuso",         "Julian Alaphilippe",  "Kaden Groves",
+    "Kevin Vauquelin",    "Lenny Martinez",      "Mads Pedersen",
+    "Mathieu van der Poel", "Matteo Jorgenson",  "Mattias Skjelmose",
+    "Michael Matthews",   "Mikel Landa",         "Neilson Powless",
+    "Olav Kooij",         "Oscar Onley",         "Paul Seixas",
+    "Primoz Roglic",      "Remco Evenepoel",     "Richard Carapaz",
+    "Romain Gregoire",    "Santiago Buitrago",   "Sepp Kuss",
+    "Tadej Pogacar",      "Thibau Nys",          "Tim Merlier",
+    "Tim Wellens",        "Tobias Johannessen",  "Tom Pidcock",
+    "Valentin Madouas",   "Wout van Aert",
+};
+
+const tournament_t cyclists_cup = {.title = "Cyclistes",
+                                   .teams = cyclists_cup_teams,
+                                   .number_teams =
+                                       sizeof(cyclists_cup_teams) /
+                                       sizeof(cyclists_cup_teams[0])};
+
+// New cups are appended last so the cup index persisted in NVS stays valid
+// for the existing entries.
 const tournament_t *tournaments[] = {
-    &world_cup,    &europe_cup,   &tsubasa_cup,
-    &france_cup,   &mls_cup,      &nba_cup,
-    &nhl_east_cup, &nhl_west_cup, &inazuma_eleven_cup,
-    &personal_cup, &sans_noms_cup};
+    &world_cup,    &europe_cup,    &tsubasa_cup,
+    &france_cup,   &mls_cup,       &nba_cup,
+    &nhl_east_cup, &nhl_west_cup,  &inazuma_eleven_cup,
+    &personal_cup, &sans_noms_cup, &ao_ashi_cup,
+    &j_league_cup, &ligue_1_cup,   &cycling_road_cup,
+    &cyclists_cup};
 
 extern const tournament_t *tournaments[];
 
