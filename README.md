@@ -308,3 +308,9 @@ Résultat : fichier RGB565 16-bit, compatible simulateur (converti automatiqueme
 - Luminosité <https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display/blob/main/Examples/Basics/4-BacklightControlTest/4-BacklightControlTest.ino>
 - Demos <https://github.com/lvgl/lv_demos>
 - Examples d'utilisation CYD <https://randomnerdtutorials.com/esp32-cyd-lvgl-display-image/>
+
+## Idées externes
+
+- Boitier impression <https://makerworld.com/fr/models/2787810-cyd-desk-buddy-for-bambu-lab-home-assistant#profileId-3099382>
+- CYD spec <https://mischianti.org/esp32-2432s028-cheap-yellow-display-high-resolution-pinout-datasheet-schema-and-specs/>
+- CYD spec autres <https://kafkar.com/projects/smart-home/understanding-connectors-and-pinout-cheap-yellow-display-boardcyd-esp32-2432s028r/>
